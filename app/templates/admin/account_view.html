@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag %}
+{% block title %}{{ account.name }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('admin_accounts') }}">← All Accounts</a></p>
+<div class="card" style="max-width:620px">
+  <h1>{{ account.name }}</h1>
+  <dl class="facts">
+    <dt>Account ID</dt><dd>{{ account.accountId }}</dd>
+    <dt>Email</dt><dd>{{ account.email }}</dd>
+    <dt>Contact Number</dt><dd>{{ account.contactNumber or '-' }}</dd>
+    <dt>Profile</dt><dd><a href="{{ url_for('admin_profile_view', profile_id=account.profileId) }}">{{ account.roleName }}</a></dd>
+    <dt>Account Status</dt><dd>{{ status_tag(account.status) }}</dd>
+    <dt>Profile Status</dt><dd>{{ status_tag(account.profileStatus) }}</dd>
+    <dt>Created</dt><dd>{{ account.createdAt|datetime }}</dd>
+  </dl>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('admin_account_edit', account_id=account.accountId) }}">Edit</a>
+    {% if account.status == 'ACTIVE' and account.accountId != user.accountId %}<a class="btn secondary" href="{{ url_for('admin_account_suspend', account_id=account.accountId) }}">Suspend</a>{% endif %}
+    {% if account.status == 'SUSPENDED' %}<a class="btn secondary" href="{{ url_for('admin_account_reactivate', account_id=account.accountId) }}">Reactivate</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

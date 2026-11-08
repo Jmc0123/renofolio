@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Home{% endblock %} · Renofolio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if not user %}
+<div class="utilitybar">
+  <div class="inner">
+    <span class="tagline">Singapore's interior design matching platform</span>
+  </div>
+</div>
+{% endif %}
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="{{ url_for('index') }}">Reno<span>folio</span></a>
+    {% if user %}
+      {% set p = user.area.prefix %}
+      <nav class="nav">
+        {% if p == 'customer' %}
+          <a href="{{ url_for('customer_home') }}">Home</a>
+          <a href="{{ url_for('customer_projects') }}">Browse Projects</a>
+          <a href="{{ url_for('customer_renovation_brief') }}">Find My Style</a>
+          <a href="{{ url_for('customer_favourites') }}">My Favourites</a>
+        {% elif p == 'designer' %}
+          <a href="{{ url_for('designer_home') }}">Home</a>
+          <a href="{{ url_for('designer_projects') }}">My Projects</a>
+          <a href="{{ url_for('designer_company') }}">Company</a>
+          <a href="{{ url_for('designer_statistics') }}">Statistics</a>
+          <a href="{{ url_for('designer_messages') }}">Messages</a>
+        {% elif p == 'admin' %}
+          <a href="{{ url_for('admin_accounts') }}">User Accounts</a>
+          <a href="{{ url_for('admin_profiles') }}">User Profiles</a>
+        {% elif p == 'pm' %}
+          <a href="{{ url_for('pm_categories') }}">Categories</a>
+          <a href="{{ url_for('pm_reports') }}">Reports</a>
+        {% endif %}
+      </nav>
+      <details class="usermenu">
+        <summary aria-label="Account menu">
+          <span class="avatar">{{ user.name[:1]|upper }}</span>
+          <span class="who-text"><strong>{{ user.name }}</strong><small>{{ user.area.label }}</small></span>
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        </summary>
+        <div class="menu">
+          {% if p == 'customer' %}<a href="{{ url_for('customer_details') }}">Personal Details</a>{% endif %}
+          <form method="post" action="{{ url_for(p ~ '_logout') }}"><button type="submit">Log Out</button></form>
+        </div>
+      </details>
+    {% else %}
+      <nav class="nav">
+        <a href="{{ url_for('customer_login') }}">Browse Projects</a>
+        <a href="{{ url_for('designer_login') }}">For Designers</a>
+      </nav>
+      <div class="header-cta">
+        <a class="btn secondary" href="{{ url_for('customer_login') }}">Log In</a>
+        {# Staff accounts are created by a User Admin, so staff login pages do not offer Sign Up. #}
+        {% if not staff %}<a class="btn" href="{{ url_for('customer_register') }}">Sign Up</a>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</header>
+{% block fullwidth %}{% endblock %}
+<main>
+  {% block flashes %}{% include "shared/_flashes.html" %}{% endblock %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="sitefooter">
+  {% if not user %}
+  <div class="inner">
+    <div class="foot-brand">
+      <a class="brand" href="{{ url_for('index') }}">Reno<span>folio</span></a>
+      <p>Matching customers with interior designers through real project portfolios.</p>
+    </div>
+    <div>
+      <h4>Customers</h4>
+      <a href="{{ url_for('customer_register') }}">Create an Account</a>
+      <a href="{{ url_for('customer_login') }}">Log In</a>
+      <a href="{{ url_for('customer_login') }}">Browse Projects</a>
+    </div>
+    <div>
+      <h4>Interior Designers</h4>
+      <a href="{{ url_for('designer_register') }}">List Your Firm</a>
+      <a href="{{ url_for('designer_login') }}">Designer Log In</a>
+    </div>
+    <div>
+      <h4>Staff</h4>
+      <a href="{{ url_for('admin_login') }}">User Admin Log In</a>
+      <a href="{{ url_for('pm_login') }}">Platform Manager Log In</a>
+    </div>
+  </div>
+  {% endif %}
+  <div class="inner copyright">© 2026 Renofolio · CSIT314 student project</div>
+</footer>
+{% if user and user.area.prefix in ('customer', 'designer') %}
+  {% set messages_url = url_for(user.area.prefix ~ '_messages') %}
+  <a class="consultation-launch btn" href="{{ messages_url }}" data-consultation-launch>
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+            stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M7 9h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    Messages
+  </a>
+  <dialog id="consultation-drawer" class="consultation-drawer" aria-labelledby="consultation-drawer-title">
+    <div class="consultation-drawer-bar">
+      <h2 id="consultation-drawer-title">Messages</h2>
+      <div>
+        <a class="small" href="{{ messages_url }}" data-consultation-full-page>Open Full Page</a>
+        <button class="btn link" type="button" data-consultation-close aria-label="Close messages">×</button>
+      </div>
+    </div>
+    <p class="consultation-notice" data-consultation-notice role="status" hidden></p>
+    <div class="consultation-drawer-content" data-consultation-content></div>
+  </dialog>
+  <script defer src="{{ url_for('static', filename='consultations.js') }}"></script>
+{% endif %}
+<script>
+  document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(btn.dataset.togglePassword);
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? 'Hide' : 'Show';
+      btn.setAttribute('aria-pressed', show);
+    });
+  });
+</script>
+</body>
+</html>

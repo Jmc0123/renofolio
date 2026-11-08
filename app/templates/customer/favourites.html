@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}My favourites{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>My Favourites</h1><p class="muted">{{ result.message if result.code == 'FOUND' }}</p></div>
+  <form class="inline-form" action="{{ url_for('customer_favourites_search') }}">
+    <div><input name="keyword" value="{{ keyword }}" placeholder="Search my favourites" aria-label="Keyword"></div>
+    <button class="btn" type="submit">Search</button>
+    {% if keyword %}<a class="btn secondary" href="{{ url_for('customer_favourites') }}">Clear</a>{% endif %}
+  </form>
+</div>
+{% if result.data %}
+<div class="grid cols-3" aria-label="Saved projects">
+  {% for f in result.data %}
+  <article class="card project favourite">
+    <a class="photo" href="{{ url_for('customer_project_detail', idp_id=f.idpId) }}" style="{{ photo_style(f) }}" aria-label="{{ f.title }}">
+      {{ status_tag(f.projectStatus) }}
+    </a>
+    <div class="body">
+      <h3><a href="{{ url_for('customer_project_detail', idp_id=f.idpId) }}">{{ f.title }}</a></h3>
+      <div class="meta">{{ f.categoryName }}</div>
+      <div class="price">{{ f.budget|money }}</div>
+      <div class="meta small">by {{ f.designerName }}</div>
+      <p class="small muted">Saved <time datetime="{{ (f.savedAt or '')[:10] }}">{{ f.savedAt|day }}</time></p>
+      <div class="actions"><a class="btn secondary small" href="{{ url_for('customer_favourite_remove', idp_id=f.idpId, title=f.title) }}">Remove</a></div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">
+  <p>{{ result.message }}</p>
+  {% if not keyword %}<a class="btn" href="{{ url_for('customer_projects') }}">Browse Projects</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

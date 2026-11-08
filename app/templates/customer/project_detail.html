@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<p><a href="{{ back_url }}">← {{ 'Back to My Matches' if back.fromBrief else 'Back to projects' }}</a></p>
+<div class="hero-photo" style="{{ photo_style(project) }}" role="img" aria-label="Project photo"></div>
+<div class="detail-grid">
+  <div class="card">
+    <div class="meta">{{ status_tag(project.projectStatus) }} <span>{{ project.categoryName }}</span></div>
+    <h1 style="margin-top:.5rem">{{ project.title }}</h1>
+    <p style="white-space:pre-line">{{ project.description or 'No description provided.' }}</p>
+  </div>
+  <aside class="card">
+    <dl class="facts">
+      <dt>Budget</dt><dd>{{ project.budget|money }}</dd>
+      <dt>Category</dt><dd>{{ project.categoryName }}</dd>
+      <dt>Status</dt><dd>{{ project.projectStatus|capitalize }}</dd>
+      <dt>Designer</dt><dd><a href="{{ url_for('customer_designer', designer_id=project.designerId) }}">{{ project.companyName or project.designerName }}</a></dd>
+      <dt>Listed</dt><dd>{{ project.createdAt|day }}</dd>
+    </dl>
+    <div id="save-message" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('customer_messages', projectId=project.idpId) }}" data-consultation-launch>Contact Designer</a>
+      {% if project.isSaved %}
+        <span class="tag active">♥ In Your Favourites</span>
+      {% else %}
+        <form method="post" action="{{ url_for('customer_project_save', idp_id=project.idpId, **back) }}" data-save-favourite>
+          <button class="btn" type="submit">♡ Save to Favourites</button></form>
+      {% endif %}
+      <a class="btn secondary" href="{{ url_for('customer_designer', designer_id=project.designerId) }}">View Designer</a>
+    </div>
+  </aside>
+</div>
+<script>
+  // US19: save in the background so the Customer stays here (no reload, so no extra US18 view).
+  (function () {
+    var form = document.querySelector('[data-save-favourite]');
+    if (!form || !window.fetch) return;
+    var box = document.getElementById('save-message');
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var button = form.querySelector('button');
+      button.disabled = true;
+      fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'fetch' }, credentials: 'same-origin' })
+        .then(function (response) {
+          if (response.redirected || !(response.headers.get('Content-Type') || '').includes('json')) {
+            window.location = response.url; return null;   // e.g. the session expired: go to the login page
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          if (!data) return;
+          if (data.loginUrl) { window.location = data.loginUrl; return; }
+          box.className = 'banner ' + (data.ok ? 'success' : (data.isSaved ? 'info' : 'error'));
+          box.textContent = data.message + ' ';
+          if (data.isSaved) {
+            var link = document.createElement('a');
+            link.href = data.favouritesUrl; link.textContent = 'View My Favourites';
+            box.appendChild(link);
+            // A plain status, not a link: the message above already links to My Favourites.
+            var tag = document.createElement('span');
+            tag.className = 'tag active'; tag.textContent = '\u2665 In Your Favourites';
+            form.replaceWith(tag);
+          } else {
+            button.disabled = false;
+          }
+        })
+        .catch(function () {
+          box.className = 'banner error'; box.textContent = 'Could not save right now. Please try again.';
+          button.disabled = false;
+        });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% macro status_tag(status) -%}
+  <span class="tag {{ status|lower }}">{{ status|capitalize }}</span>
+{%- endmacro %}
+
+{% macro photo_style(p) -%}
+  --h: {{ (p.categoryId or p.idpId or 1) * 47 % 360 }};{% if p.photoUrl %} background-image: url('{{ p.photoUrl }}');{% endif %}
+{%- endmacro %}
+
+{% macro project_card(p, href, extra='') -%}
+<article class="card project">
+  <a class="photo" href="{{ href }}" style="{{ photo_style(p) }}" aria-label="{{ p.title }}">
+    <span class="tag {{ p.projectStatus|lower }}">{{ p.projectStatus|capitalize }}</span>
+  </a>
+  <div class="body">
+    <h3><a href="{{ href }}">{{ p.title }}</a></h3>
+    <div class="meta">{{ p.categoryName }}</div>
+    <div class="price">{{ p.budget|money }}</div>
+    {% if p.designerName %}<div class="meta small" style="margin-top:auto">by {{ p.companyName or p.designerName }}</div>{% endif %}
+    {{ extra }}
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro pager(data, endpoint, params) -%}
+  {% if data and data.pages > 1 %}
+  <nav class="pager" aria-label="Pages">
+    {% if data.page > 1 %}<a class="btn secondary small" rel="prev" href="{{ url_for(endpoint, page=data.page - 1, **params) }}">← Previous</a>{% endif %}
+    {% set ns = namespace(last=0) %}
+    {% for n in range(1, data.pages + 1) %}
+      {% if n == 1 or n == data.pages or (n - data.page)|abs <= 2 %}
+        {% if n - ns.last > 1 %}<span class="page-gap" aria-hidden="true">…</span>{% endif %}
+        {% if n == data.page %}<span class="page-num current" aria-current="page">{{ n }}</span>
+        {% else %}<a class="page-num" href="{{ url_for(endpoint, page=n, **params) }}" aria-label="Page {{ n }}">{{ n }}</a>{% endif %}
+        {% set ns.last = n %}
+      {% endif %}
+    {% endfor %}
+    {% if data.page < data.pages %}<a class="btn secondary small" rel="next" href="{{ url_for(endpoint, page=data.page + 1, **params) }}">Next →</a>{% endif %}
+  </nav>
+  {# 9 November: no "Page X of Y" text; the highlighted number and the last page number already show it. #}
+  <div class="pager-foot">
+    <form class="page-jump" method="get" action="{{ url_for(endpoint) }}">
+      {% for key, value in params.items() %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+      <label for="page-jump-input">Go to Page</label>
+      <input id="page-jump-input" name="page" type="number" min="1" max="{{ data.pages }}" value="{{ data.page }}" inputmode="numeric" required>
+      <button class="btn secondary small" type="submit">Go</button>
+    </form>
+  </div>
+  {% endif %}
+{%- endmacro %}

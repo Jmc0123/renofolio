@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Interior Designer Home{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Interior Designer Home</h1><p class="muted">Welcome back, {{ user.name.split(' ')[0] }}.</p></div>
+  <a class="btn" href="{{ url_for('designer_project_new') }}">+ Create Project</a>
+</div>
+{% if not hasCompany %}
+<div class="banner info">Customers cannot see your company details yet. <a href="{{ url_for('designer_company_create') }}">Create Company Information</a>.</div>
+{% endif %}
+<div class="tiles">
+  <a class="tile" href="{{ url_for('designer_company') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 21V5l8-3 8 3v16M9 21v-5h6v5M8 8h2M14 8h2M8 12h2M14 12h2"/></svg></span>
+    <span><strong>Company Information</strong><small>{{ 'What customers see about your company' if hasCompany else 'Not added yet' }}</small></span>
+  </a>
+  <a class="tile" href="{{ url_for('designer_projects') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg></span>
+    <span><strong>My Interior Design Projects</strong><small>View, filter, search, edit and delete</small></span>
+  </a>
+  <a class="tile" href="{{ url_for('designer_statistics') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+    <span><strong>Portfolio Statistics</strong><small>Views and shortlists for your projects</small></span>
+  </a>
+</div>
+<div class="section-head"><h2>Portfolio Totals</h2><a href="{{ url_for('designer_statistics_totals') }}">Details →</a></div>
+<div class="grid cols-4">
+  <div class="stat"><div class="label">Total Views</div><div class="value">{{ totals.totalViews }}</div></div>
+  <div class="stat"><div class="label">Shortlisted Now</div><div class="value">{{ totals.totalShortlists }}</div></div>
+</div>
+{% endblock %}

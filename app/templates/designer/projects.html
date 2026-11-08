@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}My Interior Design Projects{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>My Interior Design Projects</h1><p class="muted">{{ result.message if result.ok else '' }}</p></div>
+  <a class="btn" href="{{ url_for('designer_project_new') }}">+ Create Project</a>
+</div>
+{% set position = {} %}
+{% if keyword %}{% set _ = position.update({'q': keyword}) %}{% endif %}
+{% if status and status|upper != 'ALL' %}{% set _ = position.update({'status': status|upper}) %}{% endif %}
+<form class="project-filters designer-filters" method="get" action="{{ url_for('designer_projects') }}" aria-label="My project filters">
+  <div class="filter-fields">
+    <div>
+      <label for="q">Keyword</label>
+      <input id="q" name="q" value="{{ keyword }}" placeholder="e.g. kitchen, loft" maxlength="100">
+    </div>
+    <div>
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">All statuses</option>
+        <option value="CURRENT" {{ 'selected' if status|upper == 'CURRENT' }}>Current (ongoing)</option>
+        <option value="PAST" {{ 'selected' if status|upper == 'PAST' }}>Past (completed)</option>
+      </select>
+    </div>
+  </div>
+  <div class="filter-actions">
+    <p class="small muted">Projects must match all selected filters.</p>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('designer_projects') }}">Clear All</a>
+      <button class="btn" type="submit">Apply Filters</button>
+    </div>
+  </div>
+</form>
+{% if result.ok and result.data %}
+<div class="idp-list">
+  {% for p in result.data %}
+  <a class="idp-row card" href="{{ url_for('designer_project_detail', idp_id=p.idpId, **position) }}">
+    <span class="thumb" style="{{ photo_style(p) }}"></span>
+    <span class="idp-text">
+      <strong>{{ p.title }}</strong>
+      <span class="meta">{{ p.categoryName }} · {{ status_tag(p.projectStatus) }} · {{ p.budget|money }}</span>
+      <span class="meta small">Created {{ p.createdAt|day }}</span>
+    </span>
+  </a>
+  {% endfor %}
+</div>
+{% elif result.ok %}
+<div class="card empty">
+  <p>{{ result.message }}</p>
+  {% if not status and not keyword %}<a class="btn" href="{{ url_for('designer_project_new') }}">Create Project</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

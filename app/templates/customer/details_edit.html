@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Update personal details{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <div class="profile-head">
+    <span class="avatar xl">{{ details.name[:1]|upper }}</span>
+    <div><h1>Update Personal Details</h1><p class="muted">Changes appear on your account straight away.</p></div>
+  </div>
+  <section class="card">
+    <form method="post" novalidate>
+      <label for="name">Full Name</label>
+      <input id="name" name="name" value="{{ form.name }}" autocomplete="name">
+      <label for="email">Email</label>
+      <div class="input-affix">
+        <input id="email" value="{{ details.email }}" readonly aria-describedby="email-hint">
+        <span class="affix-btn" aria-hidden="true">🔒</span>
+      </div>
+      <div class="hint" id="email-hint">Your email is your login and cannot be changed.</div>
+      <label for="contactNumber">Contact Number</label>
+      <input id="contactNumber" name="contactNumber" value="{{ form.contactNumber }}" inputmode="tel" autocomplete="tel">
+      <div class="hint">8-15 digits, e.g. 91234567 or +6591234567.</div>
+      <div class="actions">
+        <button class="btn" type="submit">Save</button>
+        <a class="btn secondary" href="{{ url_for('customer_details') }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

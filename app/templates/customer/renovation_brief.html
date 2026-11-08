@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import photo_style, status_tag %}
+{% block title %}Find My Style{% endblock %}
+
+{# Both style groups submit the same preference field. #}
+{% macro style_option(style, description, selected) %}
+  <label class="brief-style">
+    <input type="radio" name="style" value="{{ style }}"{% if selected == style %} checked{% endif %}>
+    <span class="brief-swatch" data-style="{{ style }}" aria-hidden="true"></span>
+    <span class="brief-style-copy"><strong>{{ style }}</strong><small>{{ description }}</small></span>
+  </label>
+{% endmacro %}
+
+{# Each card carries the brief and current result limit into the project detail page. #}
+{% macro match_cards(projects, answers, limit) %}
+  <div class="grid cols-3">
+    {% for project in projects %}
+      {% set detail_url = url_for('customer_project_detail', idp_id=project.idpId, fromBrief=1, shown=limit, **answers) %}
+      <article class="card project brief-match" id="match-{{ project.idpId }}">
+        <a class="photo" href="{{ detail_url }}" style="{{ photo_style(project) }}" aria-label="{{ project.title }}">
+          {{ status_tag(project.projectStatus) }}
+        </a>
+        <div class="body">
+          <h4><a href="{{ detail_url }}">{{ project.title }}</a></h4>
+          <div class="meta">{{ project.categoryName }} · {{ project.companyName or project.designerName }}</div>
+          <div class="price">{{ project.budget|money }}</div>
+          <ul class="brief-reasons" aria-label="Reasons for this match">
+            {% if project.styleMatch %}<li>Matches Your Style · {{ answers.style }}</li>{% endif %}
+            {% if project.statusMatch %}<li>Matches Your Project Status · {{ 'Completed' if answers.status == 'PAST' else 'Current' }}</li>{% endif %}
+            <li>{{ answers.room }}</li>
+            <li>{% if project.budgetGap %}{{ project.budgetGap|money }} below your budget{% else %}At your budget limit{% endif %}</li>
+          </ul>
+          <a class="btn secondary small" href="{{ detail_url }}">View Project</a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="brief-kicker">Renovation Brief</p>
+    <h1>Find My Style</h1>
+    <p class="muted">Tell us what you are renovating. See projects that fit your space and budget.</p>
+  </div>
+</div>
+
+{% if result and not result.ok %}<div class="banner error" role="alert">{{ result.message }}</div>{% endif %}
+<form class="card brief-form" method="get" action="{{ url_for('customer_renovation_brief') }}#matches">
+  <fieldset class="brief-step">
+    <legend><span>01</span> Which Room Are You Renovating?</legend>
+    <div class="brief-rooms">
+      {% for room, photo in rooms.items() %}
+        <label class="brief-room">
+          <img src="{{ photo }}" alt="" loading="lazy">
+          <span><input type="radio" name="room" value="{{ room }}" required{% if answers.room == room %} checked{% endif %}>{{ room }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <fieldset class="brief-step">
+    <legend><span>02</span> What Is Your Maximum Budget?</legend>
+    <label for="brief-budget">Budget (S$)</label>
+    <input id="brief-budget" class="brief-budget" type="number" name="budget" min="0" max="{{ max_budget }}"
+           step="0.01" value="{{ answers.budget }}" placeholder="e.g. 50000" required>
+    <p class="hint">We use the project budgets published by designers as a reference.</p>
+  </fieldset>
+  <fieldset class="brief-step">
+    <legend><span>03</span> Which Style Do You Prefer?</legend>
+    <label class="brief-style brief-any-style"><input type="radio" name="style" value=""{% if not answers.style %} checked{% endif %}>Any Style</label>
+    <div class="brief-styles">
+      {% for style, description in styles.items() %}
+        {{ style_option(style, description, answers.style) }}
+      {% endfor %}
+    </div>
+    <details class="brief-more-styles"{% if answers.style in more_styles %} open{% endif %}>
+      <summary>More Styles</summary>
+      <div class="brief-styles">
+        {% for style, description in more_styles.items() %}
+          {{ style_option(style, description, answers.style) }}
+        {% endfor %}
+      </div>
+    </details>
+  </fieldset>
+  <fieldset class="brief-step">
+    <legend><span>04</span> Which Projects Would You Like to See First?</legend>
+    <label for="brief-status">Preferred Project Status</label>
+    <select id="brief-status" class="brief-budget" name="status">
+      <option value="">Any Status</option>
+      <option value="PAST"{% if answers.status == 'PAST' %} selected{% endif %}>Completed Projects</option>
+      <option value="CURRENT"{% if answers.status == 'CURRENT' %} selected{% endif %}>Current Projects</option>
+    </select>
+  </fieldset>
+  <div class="actions">
+    <button class="btn" type="submit">Find Matching Projects</button>
+    {% if result %}<a class="btn secondary" href="{{ url_for('customer_renovation_brief') }}">Clear Answers</a>{% endif %}
+  </div>
+</form>
+
+{% if result and result.ok %}
+  <section class="brief-results" id="matches" aria-labelledby="brief-results-title">
+    <h2 id="brief-results-title">Your Project Matches</h2>
+    {% if result.code == 'EMPTY' %}
+      <div class="card empty">
+        <p>{{ result.message }}</p>
+        {% if result.data.lowestBudget is not none %}
+          <p class="muted">The lowest published budget for a visible {{ answers.room|lower }} project is <strong>{{ result.data.lowestBudget|money }}</strong>.</p>
+          <a class="btn secondary" href="#brief-budget">Edit Budget</a>
+        {% else %}
+          <p class="muted">No visible projects with a published budget are available for this room. Try another room type.</p>
+        {% endif %}
+      </div>
+    {% else %}
+      {% set matches = result.data %}
+      {% set has_preferences = answers.style or answers.status %}
+      <p class="muted">Showing {{ matches.best|length + matches.other|length }} of {{ matches.total }} eligible {{ 'project' if matches.total == 1 else 'projects' }}.</p>
+      {% if has_preferences %}
+        <section class="brief-group" id="best-matches" aria-labelledby="brief-best-title">
+          <h3 id="brief-best-title">Best Matches</h3>
+          {% if matches.best %}
+            <p class="muted">These projects meet every preference you selected.</p>
+            {{ match_cards(matches.best, answers, matches.limit) }}
+          {% else %}
+            <p class="muted">No projects match all your preferences. The options below still fit your room and budget.</p>
+          {% endif %}
+        </section>
+      {% endif %}
+      {% if matches.other %}
+        <section class="brief-group" id="other-matches" aria-labelledby="brief-other-title">
+          <h3 id="brief-other-title">{{ 'Other Options Within Budget' if has_preferences else 'Projects Within Budget' }}</h3>
+          {{ match_cards(matches.other, answers, matches.limit) }}
+        </section>
+      {% endif %}
+      {% if matches.nextLimit %}
+        <div class="actions">
+          <a class="btn secondary" href="{{ url_for('customer_renovation_brief', shown=matches.nextLimit, _anchor='match-' ~ matches.nextProjectId, **answers) }}">Show More</a>
+        </div>
+      {% endif %}
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

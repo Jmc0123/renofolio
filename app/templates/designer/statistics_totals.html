@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Portfolio Totals{% endblock %}
+{% block content %}
+<h1>Portfolio Statistics</h1>
+{% include "designer/_stats_nav.html" %}
+<h2>Portfolio Totals</h2>
+<div class="grid cols-4">
+  <div class="stat"><div class="label">Total Views</div><div class="value">{{ totals.totalViews }}</div></div>
+  <div class="stat"><div class="label">Shortlisted Now</div><div class="value">{{ totals.totalShortlists }}</div></div>
+</div>
+<p class="hint">Across all your current and past projects. These equal the sums in the Interest Summary.</p>
+<div class="actions"><a class="btn secondary" href="{{ url_for('designer_statistics') }}">Back to Statistics</a></div>
+{% endblock %}

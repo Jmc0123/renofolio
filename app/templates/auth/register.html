@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ role_label }} Sign Up{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+{% set designer = role_label == 'Interior Designer' %}
+<div class="auth-split">
+  <aside class="auth-aside">
+    {% if designer %}
+      <p class="eyebrow">For Interior Designers</p>
+      <h2>Showcase Your Firm to Customers</h2>
+      <ul class="ticks">
+        <li>Publish your company profile and contact details</li>
+        <li>Manage current and past projects in one portfolio</li>
+        <li>See views and shortlists for every project</li>
+        <li>Compare interest by day, week or month</li>
+      </ul>
+    {% else %}
+      <p class="eyebrow">For Customers</p>
+      <h2>Find the Designer That Fits Your Home</h2>
+      <ul class="ticks">
+        <li>Browse hundreds of real renovation projects</li>
+        <li>Filter by style, status and budget</li>
+        <li>Save favourites and compare them later</li>
+        <li>See each studio's portfolio and contacts</li>
+      </ul>
+    {% endif %}
+  </aside>
+  <div class="auth-card">
+    <h1>Create Your Account</h1>
+    {% set tabs = {'customer': 'customer_register', 'designer': 'designer_register'} %}
+    {% set active_tab = 'designer' if designer else 'customer' %}
+    {% include "auth/_role_tabs.html" %}
+    {% include "shared/_flashes.html" %}
+    <form method="post" novalidate>
+      <label for="name">Full Name</label>
+      <input id="name" name="name" value="{{ form.name }}" autocomplete="name" autofocus>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ form.email }}" autocomplete="username">
+      <label for="password">Password</label>
+      <div class="input-affix">
+        <input id="password" name="password" type="password" autocomplete="new-password">
+        <button type="button" class="affix-btn" data-toggle-password="password" aria-pressed="false">Show</button>
+      </div>
+      <div class="hint">At least 8 characters.</div>
+      <label for="contactNumber">Contact Number</label>
+      <input id="contactNumber" name="contactNumber" value="{{ form.contactNumber }}" inputmode="tel" autocomplete="tel" placeholder="91234567">
+      <div class="hint">8-15 digits, e.g. 91234567 or +6591234567.</div>
+      <button class="btn block large" type="submit">Create Account</button>
+    </form>
+    <p class="auth-switch">Already have an account? <a href="{{ url_for(login_endpoint) }}">Log In</a></p>
+  </div>
+</div>
+{% endblock %}

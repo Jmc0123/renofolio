@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+test-results.xml
+.venv/
+venv/
+app/static/uploads/idp/*
+!app/static/uploads/idp/.gitkeep
+.renofolio_secret_key

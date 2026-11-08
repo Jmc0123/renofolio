@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Company Information{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <h1>Company Information</h1>
+  <section class="card">
+    {% if result.ok %}
+      {% set c = result.data %}
+      <dl class="detail-rows">
+        <div><dt>Company</dt><dd>{{ c.companyName }}</dd></div>
+        <div><dt>Description</dt><dd style="white-space:pre-line">{{ c.description or '-' }}</dd></div>
+        <div><dt>Address</dt><dd>{{ c.address or '-' }}</dd></div>
+        <div><dt>Contact Email</dt><dd><a href="mailto:{{ c.contactEmail }}">{{ c.contactEmail }}</a></dd></div>
+        <div><dt>Contact Number</dt><dd><a href="tel:{{ c.contactNumber|replace(' ', '') }}">{{ c.contactNumber }}</a></dd></div>
+        <div><dt>Website</dt><dd>{% if c.website %}<a href="{{ c.website if '://' in c.website else 'https://' ~ c.website }}" rel="noopener nofollow" target="_blank">{{ c.website }}</a>{% else %}-{% endif %}</dd></div>
+      </dl>
+    {% else %}
+      <p class="muted">{{ result.message }}</p>
+    {% endif %}
+    <div class="actions"><a class="btn secondary" href="{{ url_for('customer_designer', designer_id=designerId) }}">Back to Portfolio</a></div>
+  </section>
+</div>
+{% endblock %}

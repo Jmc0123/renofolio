@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Project Statistics{% endblock %}
+{% block content %}
+<h1>Portfolio Statistics</h1>
+{% include "designer/_stats_nav.html" %}
+<div class="profile-wrap" style="margin:0">
+  <h2>Project Statistics</h2>
+  <section class="card">
+    {% if projects %}
+    <form action="{{ url_for('designer_statistics_project') }}">
+      <label for="idpId">Project</label>
+      <select id="idpId" name="idpId">
+        <option value="">Choose one of your projects…</option>
+        {% for p in projects %}<option value="{{ p.idpId }}" {{ 'selected' if idpId == p.idpId|string }}>{{ p.title }}</option>{% endfor %}
+      </select>
+      <div class="actions">
+        <button class="btn" name="show" value="views" type="submit">View Count</button>
+        <button class="btn secondary" name="show" value="shortlists" type="submit">Shortlist Count</button>
+      </div>
+    </form>
+    {% if result and result.ok %}
+      <dl class="detail-rows" style="margin-top:1rem">
+        {% if shown == 'views' %}
+          <div><dt>Total Views</dt><dd class="big-number">{{ result.data.viewCount }}</dd></div>
+          <p class="hint">Every time a customer opened the project's details.</p>
+        {% else %}
+          <div><dt>Shortlisted Now</dt><dd class="big-number">{{ result.data.shortlistCount }}</dd></div>
+          <p class="hint">Customers who currently have this project in their favourites.</p>
+        {% endif %}
+      </dl>
+    {% endif %}
+    {% else %}
+      <p class="muted">You have no projects yet.</p><a class="btn" href="{{ url_for('designer_project_new') }}">Create Project</a>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

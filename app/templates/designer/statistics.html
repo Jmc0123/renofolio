@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}Project Interest Summary{% endblock %}
+{% block content %}
+<h1>Portfolio Statistics</h1>
+{% include "designer/_stats_nav.html" %}
+<div class="page-head">
+  <div><h2>Project Interest Summary</h2><p class="muted small">{{ result.message }}</p></div>
+  {% if result.data %}
+  <div class="actions" style="margin:0">
+    <a class="btn {{ '' if sort == 'views' else 'secondary' }}" href="{{ url_for('designer_statistics', sort='views') }}">Sort by Views</a>
+    <a class="btn {{ '' if sort == 'shortlists' else 'secondary' }}" href="{{ url_for('designer_statistics', sort='shortlists') }}">Sort by Shortlists</a>
+  </div>
+  {% endif %}
+</div>
+{% if result.data %}
+<div class="idp-list">
+  {% for p in result.data %}
+  <a class="idp-row card" href="{{ url_for('designer_project_detail', idp_id=p.idpId) }}">
+    <span class="thumb" style="{{ photo_style(p) }}"></span>
+    <span class="idp-text">
+      <strong>{{ p.title }}</strong>
+      <span class="meta">{{ p.categoryName }} · {{ status_tag(p.projectStatus) }} · {{ p.budget|money }}</span>
+    </span>
+    <span class="idp-counts"><span><b>{{ p.viewCount }}</b> view{{ '' if p.viewCount == 1 else 's' }}</span><span><b>{{ p.shortlistCount }}</b> shortlisted now</span></span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty"><p>{{ result.message }}</p><a class="btn" href="{{ url_for('designer_project_new') }}">Create Project</a></div>
+{% endif %}
+{% endblock %}

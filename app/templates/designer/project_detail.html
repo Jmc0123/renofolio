@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('designer_projects', **back) }}">← Back to My Projects</a></p>
+<div class="hero-photo" style="{{ photo_style(project) }}" role="img" aria-label="Project photo"></div>
+<div class="detail-grid">
+  <div class="card">
+    <div class="meta">{{ status_tag(project.projectStatus) }} <span>{{ project.categoryName }}</span></div>
+    <h1 style="margin-top:.5rem">{{ project.title }}</h1>
+    <p style="white-space:pre-line">{{ project.description or 'No description provided.' }}</p>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('designer_project_edit', idp_id=project.idpId) }}">Edit</a>
+      <a class="btn danger" href="{{ url_for('designer_project_delete', idp_id=project.idpId) }}">Delete</a>
+    </div>
+  </div>
+  <aside class="card">
+    <dl class="facts">
+      <dt>Category</dt><dd>{{ project.categoryName }}</dd>
+      <dt>Status</dt><dd>{{ 'Current (ongoing)' if project.projectStatus == 'CURRENT' else 'Past (completed)' }}</dd>
+      <dt>Budget</dt><dd>{{ project.budget|money }}</dd>
+      <dt>Created</dt><dd>{{ project.createdAt|day }}</dd>
+    </dl>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('designer_statistics_project', idpId=project.idpId) }}">Project Statistics</a>
+    </div>
+  </aside>
+</div>
+{% endblock %}

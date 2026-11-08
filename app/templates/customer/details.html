@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Personal details{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <div class="profile-head">
+    <span class="avatar xl">{{ details.name[:1]|upper }}</span>
+    <div>
+      <h1>{{ details.name }}</h1>
+      <p class="muted">Customer · Member since {{ details.createdAt|day }}</p>
+    </div>
+  </div>
+  <section class="card">
+    <div class="section-head" style="margin-top:0">
+      <h2>Personal Details</h2>
+      <a class="btn" href="{{ url_for('customer_details_edit') }}">Edit Details</a>
+    </div>
+    <dl class="detail-rows">
+      <div><dt>Full Name</dt><dd>{{ details.name }}</dd></div>
+      <div><dt>Email</dt><dd>{{ details.email }}</dd></div>
+      <div><dt>Contact Number</dt><dd>{{ details.contactNumber }}</dd></div>
+      <div><dt>Account Status</dt><dd><span class="tag active">{{ details.status|capitalize }}</span></dd></div>
+    </dl>
+  </section>
+  <p><a href="{{ url_for('customer_home') }}">← Back to home</a></p>
+</div>
+{% endblock %}

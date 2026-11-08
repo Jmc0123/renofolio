@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import photo_style %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <h1>{{ heading }}</h1>
+  <section class="card">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      <label for="title">Title</label>
+      <input id="title" name="title" value="{{ form.title or '' }}" maxlength="120" placeholder="e.g. Bright Family Kitchen">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" placeholder="e.g. Open kitchen with an island">{{ form.description or '' }}</textarea>
+      <div class="grid cols-2">
+        <div>
+          <label for="categoryId">Category</label>
+          <select id="categoryId" name="categoryId">
+            <option value="">Choose…</option>
+            {% for c in categories %}<option value="{{ c.categoryId }}" {{ 'selected' if form.categoryId|string == c.categoryId|string }}>{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="projectStatus">Status</label>
+          <select id="projectStatus" name="projectStatus">
+            <option value="CURRENT" {{ 'selected' if (form.projectStatus or '')|upper == 'CURRENT' }}>Current (ongoing)</option>
+            <option value="PAST" {{ 'selected' if (form.projectStatus or '')|upper == 'PAST' }}>Past (completed)</option>
+          </select>
+        </div>
+      </div>
+      <label for="budget">Budget (S$)</label>
+      <input id="budget" name="budget" value="{{ form.budget if form.budget is not none else '' }}" inputmode="decimal" placeholder="e.g. 21000">
+      <label for="photo">Photo</label>
+      {% set has_saved_photo = current_project and current_project.photoUrl %}
+      {% if has_saved_photo %}
+        <div class="thumb large" style="{{ photo_style(current_project) }}" role="img" aria-label="Current photo"></div>
+      {% endif %}
+      <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+      <p class="hint">JPG, PNG or WebP, up to 5 MB.{% if has_saved_photo %} Leave empty to keep the current photo.{% endif %}</p>
+      <div class="actions">
+        <button class="btn" type="submit">{{ submit_label }}</button>
+        <a class="btn secondary" href="{{ url_for('designer_project_detail', idp_id=idpId) if idpId else url_for('designer_projects') }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

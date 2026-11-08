@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import pager as pager_nav %}
+{% block title %}Project Categories{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Project Categories</h1><p class="muted">{{ result.message }}</p></div>
+  <a class="btn" href="{{ url_for('pm_category_new') }}">Create Category</a>
+</div>
+<form class="inline-form card" style="margin-bottom:1rem">
+    <div><label for="keyword">Search by Name</label><input id="keyword" name="keyword" value="{{ keyword }}" placeholder="e.g. Kitchen"></div>
+    <button class="btn" type="submit">Search</button>
+    {% if keyword %}<a class="btn secondary" href="{{ url_for('pm_categories') }}">Clear</a>{% endif %}
+</form>
+{% if rows %}
+<div class="table-wrap card" style="padding:0">
+<table>
+  <thead><tr><th>ID</th><th>Name</th><th class="num">Projects</th><th></th></tr></thead>
+  <tbody>
+  {% for c in rows %}
+  <tr>
+    <td>{{ c.categoryId }}</td><td>{{ c.name }}</td><td class="num">{{ c.projectCount }}</td>
+    <td><div class="row-actions">
+      <a class="btn secondary small" href="{{ url_for('pm_category_edit', category_id=c.categoryId) }}">Edit</a>
+      <a class="btn secondary small" href="{{ url_for('pm_category_remove', category_id=c.categoryId) }}">Remove</a>
+    </div></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ pager_nav(pager, 'pm_categories', params) }}
+{% else %}<div class="card empty">{{ result.message }}</div>{% endif %}
+{% endblock %}

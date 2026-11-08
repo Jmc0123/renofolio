@@ -1,0 +1,6 @@
+<nav class="tabs" aria-label="Portfolio Statistics">
+  <a href="{{ url_for('designer_statistics') }}" class="{{ 'active' if tab == 'summary' }}">Interest Summary</a>
+  <a href="{{ url_for('designer_statistics_project') }}" class="{{ 'active' if tab == 'project' }}">Project Statistics</a>
+  <a href="{{ url_for('designer_statistics_period') }}" class="{{ 'active' if tab == 'period' }}">Statistics for a Period</a>
+  <a href="{{ url_for('designer_statistics_totals') }}" class="{{ 'active' if tab == 'totals' }}">Portfolio Totals</a>
+</nav>

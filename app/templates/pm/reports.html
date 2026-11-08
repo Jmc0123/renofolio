@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Platform Reports</h1><p class="muted">Select a day, week or month and generate a report.</p></div></div>
+<nav class="tabs">
+  {% for t, label in [('DAY','Daily'),('WEEK','Weekly'),('MONTH','Monthly')] %}
+    <a href="{{ url_for('pm_reports', periodType=t) }}" class="{{ 'active' if periodType == t }}">{{ label }}</a>
+  {% endfor %}
+</nav>
+<form class="inline-form card" style="margin-bottom:1rem">
+  <input type="hidden" name="periodType" value="{{ periodType }}">
+  <div>
+    <label for="periodValue">{{ {'DAY':'Date','WEEK':'Date in Week','MONTH':'Month'}[periodType] }}</label>
+    <input id="periodValue" name="periodValue" value="{{ periodValue }}" type="{{ {'DAY':'date','WEEK':'date','MONTH':'month'}[periodType] }}"
+           placeholder="{{ {'DAY':'YYYY-MM-DD','WEEK':'YYYY-MM-DD','MONTH':'YYYY-MM'}[periodType] }}">
+  </div>
+  <button class="btn" type="submit">Generate Report</button>
+</form>
+
+{% if report %}
+<div class="card">
+  <h2>{{ report.title }}</h2>
+  {% set s = report.summary %}
+  <div class="grid cols-4">
+    <div class="stat"><div class="label">New Accounts</div><div class="value">{{ s.newAccounts }}</div></div>
+    <div class="stat"><div class="label">New Projects</div><div class="value">{{ s.newProjects }}</div></div>
+    <div class="stat"><div class="label">Project Views</div><div class="value">{{ s.projectViews }}</div></div>
+    <div class="stat"><div class="label">New Saves</div><div class="value">{{ s.newSaves }}</div></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

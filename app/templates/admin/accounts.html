@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, pager as pager_nav %}
+{% block title %}User Accounts{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>User Accounts</h1><p class="muted">{{ result.message }}</p></div>
+  <a class="btn" href="{{ url_for('admin_account_new') }}">Create Account</a>
+</div>
+<form class="inline-form card" style="margin-bottom:1rem">
+  <div><label for="keyword">Name or Email</label><input id="keyword" name="keyword" value="{{ keyword }}" placeholder="e.g. Rachel or rachel@example.com"></div>
+  <div><label for="profileId">Profile</label>
+    <select id="profileId" name="profileId">
+      <option value="">All Profiles</option>
+      {% for p in profiles %}<option value="{{ p.profileId }}" {{ 'selected' if profileId == p.profileId|string }}>{{ p.roleName }}</option>{% endfor %}
+    </select></div>
+  <button class="btn" type="submit">Search</button>
+  {% if keyword or profileId %}<a class="btn secondary" href="{{ url_for('admin_accounts') }}">Clear</a>{% endif %}
+  <p class="hint form-hint">Enter a name or email, or choose a profile.</p>
+</form>
+{% if rows %}
+<div class="table-wrap card" style="padding:0">
+<table>
+  <thead><tr><th>ID</th><th>Full Name</th><th>Email</th><th>Profile</th><th>Account Status</th><th>Profile Status</th><th></th></tr></thead>
+  <tbody>
+  {% for a in rows %}
+  <tr>
+    <td>{{ a.accountId }}</td><td>{{ a.name }}</td><td>{{ a.email }}</td><td>{{ a.roleName }}</td>
+    <td>{{ status_tag(a.status) }}</td><td>{{ status_tag(a.profileStatus) }}</td>
+    <td><div class="row-actions">
+      <a class="btn secondary small" href="{{ url_for('admin_account_view', account_id=a.accountId) }}">View</a>
+      <a class="btn secondary small" href="{{ url_for('admin_account_edit', account_id=a.accountId) }}">Edit</a>
+      {% if a.status == 'ACTIVE' and a.accountId != user.accountId %}<a class="btn secondary small" href="{{ url_for('admin_account_suspend', account_id=a.accountId) }}">Suspend</a>{% endif %}
+      {% if a.status == 'SUSPENDED' %}<a class="btn secondary small" href="{{ url_for('admin_account_reactivate', account_id=a.accountId) }}">Reactivate</a>{% endif %}
+    </div></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ pager_nav(pager, 'admin_accounts', params) }}
+{% else %}<div class="card empty">{{ result.message }}</div>{% endif %}
+{% endblock %}

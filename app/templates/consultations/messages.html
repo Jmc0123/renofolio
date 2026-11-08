@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Consultation Inbox' if is_designer else 'My Messages' }}{% endblock %}
+{% block content %}
+<section class="consultation-page">
+  <div class="page-head">
+    <div>
+      <h1>{{ 'Consultation Inbox' if is_designer else 'My Messages' }}</h1>
+      <p class="muted">{{ 'Reply to customers about your projects.' if is_designer else 'Keep your project enquiries and replies in one place.' }}</p>
+    </div>
+  </div>
+  <div class="card">
+    {% include "consultations/_panel.html" %}
+  </div>
+</section>
+{% endblock %}

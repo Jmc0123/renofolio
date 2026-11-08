@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="card confirm" role="alertdialog" aria-labelledby="confirm-title">
+  <h2 id="confirm-title">{{ heading }}</h2>
+  <p>{{ message }}</p>
+  <form method="post" action="{{ action }}" class="actions">
+    <button class="btn {{ 'danger' if danger }}" type="submit">{{ confirm_label }}</button>
+    <a class="btn secondary" href="{{ cancel }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

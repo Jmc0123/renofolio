@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ role_label }} Log In{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card {{ 'staff' if staff }}">
+    {% if staff %}
+      <p class="eyebrow">Staff Portal</p>
+      <h1>{{ role_label }} Log In</h1>
+      <p class="muted small">Staff accounts are created by a User Admin.</p>
+    {% else %}
+      <h1>{{ role_label }} Log In</h1>
+      {% set tabs = {'customer': 'customer_login', 'designer': 'designer_login'} %}
+      {% set active_tab = 'designer' if role_label == 'Interior Designer' else 'customer' %}
+      {% include "auth/_role_tabs.html" %}
+    {% endif %}
+    {% include "shared/_flashes.html" %}
+    <form method="post" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="{{ email }}" autocomplete="username" autofocus>
+      <label for="password">Password</label>
+      <div class="input-affix">
+        <input id="password" name="password" type="password" autocomplete="current-password">
+        <button type="button" class="affix-btn" data-toggle-password="password" aria-pressed="false">Show</button>
+      </div>
+      <button class="btn block large" type="submit">Log In</button>
+    </form>
+    {% if register_endpoint %}
+      <p class="auth-switch">Not a member yet? <a href="{{ url_for(register_endpoint) }}">Create an Account</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

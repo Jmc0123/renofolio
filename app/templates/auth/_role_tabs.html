@@ -1,0 +1,7 @@
+{# Customer / Interior Designer switch shared by the login and sign-up pages. #}
+{% if tabs %}
+<nav class="role-tabs" aria-label="Account type">
+  <a href="{{ url_for(tabs.customer) }}" class="{{ 'active' if active_tab == 'customer' }}">Customer</a>
+  <a href="{{ url_for(tabs.designer) }}" class="{{ 'active' if active_tab == 'designer' }}">Interior Designer</a>
+</nav>
+{% endif %}

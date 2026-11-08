@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:620px">
+  <h1>{{ heading }}</h1>
+  <form method="post" novalidate>
+    <label for="displayName">Full Name</label>
+    <input id="displayName" name="displayName" value="{{ form.displayName or '' }}" required>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ form.email or '' }}" required>
+    {% if creating %}
+      <label for="password">Initial Password</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" required>
+      <div class="hint">At least 8 characters.</div>
+    {% endif %}
+    <label for="contactNumber">Contact Number</label>
+    <input id="contactNumber" name="contactNumber" type="tel" value="{{ form.contactNumber or '' }}" required>
+    {% if creating %}
+      <label for="profileId">Profile</label>
+      <select id="profileId" name="profileId" required>
+        <option value="">Choose…</option>
+        {% for p in profiles %}<option value="{{ p.profileId }}" {{ 'selected' if form.profileId|string == p.profileId|string }}>{{ p.roleName }}{{ '' if p.isBuiltIn else ' (' ~ p.baseRoleLabel ~ ')' }}</option>{% endfor %}
+      </select>
+    {% else %}
+      <label for="roleName">Profile</label>
+      <input id="roleName" value="{{ roleName }}" readonly>
+    {% endif %}
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Create Account' if creating else 'Save' }}</button>
+      <a class="btn secondary" href="{{ url_for('admin_account_view', account_id=accountId) if accountId else url_for('admin_accounts') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

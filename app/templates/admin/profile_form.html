@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:620px">
+  <h1>{{ heading }}</h1>
+  <form method="post" novalidate>
+    <label for="displayName">Role Name</label>
+    {% if creating %}
+      <input id="displayName" name="displayName" value="{{ form.displayName or '' }}" placeholder="e.g. Support Team" required>
+      <label for="basedOn">Based on</label>
+      <select id="basedOn" name="basedOn" required>
+        <option value="">Choose…</option>
+        {% for code, label in [('USER_ADMIN', 'User Admin'), ('PLATFORM_MANAGER', 'Platform Manager')] %}
+          <option value="{{ code }}" {{ 'selected' if form.basedOn == code }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="hint">Accounts with this profile log in and work as this role.</div>
+    {% else %}
+      <input id="displayName" value="{{ form.displayName }}" readonly>
+      <label for="basedOnView">Based on</label>
+      <input id="basedOnView" value="{{ 'Built-in profile' if profile.isBuiltIn else profile.baseRoleLabel }}" readonly>
+    {% endif %}
+    <label for="description">Description{{ ' (optional)' if creating else '' }}</label>
+    <textarea id="description" name="description" maxlength="500" {{ 'required' if not creating }}>{{ form.description or '' }}</textarea>
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Create Profile' if creating else 'Save' }}</button>
+      <a class="btn secondary" href="{{ url_for('admin_profile_view', profile_id=profileId) if profileId else url_for('admin_profiles') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

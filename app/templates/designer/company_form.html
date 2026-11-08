@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <h1>{{ heading }}</h1>
+  <section class="card">
+    <form method="post" novalidate>
+      <label for="companyName">Company Name</label>
+      <input id="companyName" name="companyName" value="{{ form.companyName or '' }}" placeholder="e.g. Studio Lim Interiors" maxlength="120">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" placeholder="e.g. Modern and Scandinavian homes">{{ form.description or '' }}</textarea>
+      <label for="address">Address</label>
+      <input id="address" name="address" value="{{ form.address or '' }}" placeholder="e.g. 12 Kaki Bukit Rd, #03-05">
+      <div class="grid cols-2">
+        <div><label for="contactEmail">Contact Email</label>
+          <input id="contactEmail" name="contactEmail" type="email" value="{{ form.contactEmail or '' }}" placeholder="name@example.com"></div>
+        <div><label for="contactNumber">Contact Number</label>
+          <input id="contactNumber" name="contactNumber" value="{{ form.contactNumber or '' }}" inputmode="tel" placeholder="+65 6123 4567"></div>
+      </div>
+      <label for="website">Website (optional)</label>
+      <input id="website" name="website" value="{{ form.website or '' }}" placeholder="e.g. studiolim.sg">
+      <p class="hint">Company name, contact email and contact number are required.</p>
+      <div class="actions">
+        <button class="btn" type="submit">{{ submit_label }}</button>
+        <a class="btn secondary" href="{{ url_for('designer_company') if not creating else url_for('designer_home') }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

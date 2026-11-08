@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, pager as pager_nav %}
+{% block title %}User Profiles{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>User Profiles</h1><p class="muted">{{ result.message }}</p></div>
+  <a class="btn" href="{{ url_for('admin_profile_new') }}">Create Profile</a>
+</div>
+<form class="inline-form card" style="margin-bottom:1rem">
+  <div><label for="keyword">Role Name or Description</label><input id="keyword" name="keyword" value="{{ keyword }}" placeholder="e.g. Platform Manager or staff"></div>
+  <button class="btn" type="submit">Search</button>
+  {% if keyword %}<a class="btn secondary" href="{{ url_for('admin_profiles') }}">Clear</a>{% endif %}
+</form>
+{% if rows %}
+<div class="table-wrap card" style="padding:0">
+<table>
+  <thead><tr><th>ID</th><th>Role Name</th><th>Based on</th><th>Description</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for p in rows %}
+  <tr>
+    <td>{{ p.profileId }}</td><td>{{ p.roleName }}</td>
+    <td>{{ 'Built-in' if p.isBuiltIn else p.baseRoleLabel }}</td>
+    <td class="small muted">{{ p.description }}</td><td>{{ status_tag(p.status) }}</td>
+    <td><div class="row-actions">
+      <a class="btn secondary small" href="{{ url_for('admin_profile_view', profile_id=p.profileId) }}">View</a>
+      <a class="btn secondary small" href="{{ url_for('admin_profile_edit', profile_id=p.profileId) }}">Edit</a>
+      {% if p.isActive and not p.isBuiltIn %}<a class="btn secondary small" href="{{ url_for('admin_profile_suspend', profile_id=p.profileId) }}">Suspend</a>{% endif %}
+      {% if not p.isActive %}<a class="btn secondary small" href="{{ url_for('admin_profile_reactivate', profile_id=p.profileId) }}">Reactivate</a>{% endif %}
+    </div></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ pager_nav(pager, 'admin_profiles', params) }}
+{% else %}<div class="card empty">{{ result.message }}</div>{% endif %}
+{% endblock %}

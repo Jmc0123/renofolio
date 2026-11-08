@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import project_card %}
+{% set d = portfolio.designer %}
+{% block title %}{{ d.companyName or d.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ d.companyName or d.name }}</h1>{% if d.companyName %}<p class="muted">Designer: {{ d.name }}</p>{% endif %}</div>
+  <a class="btn" href="{{ url_for('customer_designer_company', designer_id=d.accountId) }}">Company Information</a>
+</div>
+{% if result.code == 'EMPTY' %}
+  <div class="card empty">{{ result.message }}</div>
+{% else %}
+  <h2>Current Projects ({{ portfolio.current|length }})</h2>
+  {% if portfolio.current %}<div class="grid cols-3">{% for p in portfolio.current %}{{ project_card(p, url_for('customer_project_detail', idp_id=p.idpId)) }}{% endfor %}</div>
+  {% else %}<p class="muted">No current projects.</p>{% endif %}
+  <h2 style="margin-top:1.5rem">Past Projects ({{ portfolio.past|length }})</h2>
+  {% if portfolio.past %}<div class="grid cols-3">{% for p in portfolio.past %}{{ project_card(p, url_for('customer_project_detail', idp_id=p.idpId)) }}{% endfor %}</div>
+  {% else %}<p class="muted">No past projects.</p>{% endif %}
+{% endif %}
+{% endblock %}

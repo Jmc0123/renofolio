@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import photo_style %}
+{% block title %}Find your interior designer{% endblock %}
+{% block fullwidth %}
+<section class="hero-band">
+  <div class="inner hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Interior Design Projects · Singapore</p>
+      <h1>Renovate Your Home with the Right Designer</h1>
+      <p class="lead">Browse real projects from interior design firms, shortlist the styles you love, and see the studio behind every design.</p>
+      <div class="hero-actions">
+        <a class="btn large" href="{{ url_for('customer_register') }}">Find a Designer</a>
+        <a class="btn large ghost" href="{{ url_for('designer_register') }}">I'm an Interior Designer</a>
+      </div>
+      <ul class="proof">
+        <li><strong>{{ projectCount }}</strong> design projects</li>
+        <li><strong>{{ categoryCount }}</strong> styles &amp; rooms</li>
+        <li><strong>Free</strong> for customers</li>
+      </ul>
+    </div>
+    <div class="hero-board" aria-hidden="true">
+      {% for p in preview %}
+        <div class="board-tile t{{ loop.index }}" style="{{ photo_style(p) }}">
+          <span class="tag {{ p.projectStatus|lower }}">{{ p.projectStatus|capitalize }}</span>
+          <div class="board-caption"><strong>{{ p.categoryName }}</strong><span>{{ p.budget|money }}</span></div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block content %}
+<section class="section">
+  <h2 class="section-title">How It Works</h2>
+  <div class="steps">
+    <div class="step"><span class="step-no">1</span><h3>Create a Free Account</h3><p>Sign up as a customer in under a minute. All you need is an email and contact number.</p></div>
+    <div class="step"><span class="step-no">2</span><h3>Browse and Shortlist</h3><p>Search by keyword, filter by style, status and budget, and save projects to your favourites.</p></div>
+    <div class="step"><span class="step-no">3</span><h3>Meet the Studio</h3><p>Open any project to see the designer's portfolio and company contact details.</p></div>
+  </div>
+</section>
+<section class="designer-band">
+  <div>
+    <h2>Are You an Interior Designer?</h2>
+    <p>Publish your company profile and portfolio, and see how many customers view and shortlist each project.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn large" href="{{ url_for('designer_register') }}">List Your Firm</a>
+    <a class="btn large secondary" href="{{ url_for('designer_login') }}">Designer Log In</a>
+  </div>
+</section>
+{% endblock %}

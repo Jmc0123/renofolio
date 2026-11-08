@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import project_card %}
+{% block title %}Home{% endblock %}
+{% block fullwidth %}
+<section class="welcome-band">
+  <div class="inner">
+    <h1>Welcome Back, {{ user.name.split(' ')[0] }}</h1>
+    <p>What are you planning to renovate?</p>
+    <form class="big-search" action="{{ url_for('customer_projects_search') }}" role="search">
+      <input name="keyword" placeholder="Try “kitchen”, “Japandi” or “condominium”" aria-label="Search projects">
+      <button class="btn large" type="submit">Search</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
+{% block content %}
+<div class="tiles">
+  <a class="tile" href="{{ url_for('customer_projects') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+    <span><strong>Browse Projects</strong><small>{{ projectCount }} projects to explore</small></span>
+  </a>
+  <a class="tile" href="{{ url_for('customer_favourites') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg></span>
+    <span><strong>My Favourites</strong><small>{{ favouriteCount }} saved project{{ '' if favouriteCount == 1 else 's' }}</small></span>
+  </a>
+  <a class="tile" href="{{ url_for('customer_details') }}">
+    <span class="tile-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+    <span><strong>Personal Details</strong><small>Name, email and contact number</small></span>
+  </a>
+</div>
+{% if newest %}
+<div class="section-head">
+  <h2>Newest Projects</h2>
+  <a href="{{ url_for('customer_projects') }}">See All →</a>
+</div>
+<div class="grid cols-4">
+  {% for p in newest %}{{ project_card(p, url_for('customer_project_detail', idp_id=p.idpId)) }}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

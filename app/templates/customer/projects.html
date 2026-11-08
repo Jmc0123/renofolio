@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import project_card, pager %}
+{% block title %}Browse projects{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Interior Design Projects</h1>
+  <p class="muted">{% if result.data %}{{ result.data.total }} project{{ '' if result.data.total == 1 else 's' }}{% endif %}</p></div>
+</div>
+
+<form class="project-filters" method="get" action="{{ url_for('customer_projects') }}" aria-label="Project filters">
+  <div class="filter-fields">
+    <div>
+      <label for="project-keyword">Keyword</label>
+      <input id="project-keyword" name="keyword" value="{{ filters.get('keyword', '') }}" placeholder="e.g. kitchen, loft" maxlength="100">
+    </div>
+    <div>
+      <label for="project-category">Category</label>
+      <select id="project-category" name="categoryId">
+        <option value="">All categories</option>
+        {% for c in categories %}<option value="{{ c.categoryId }}" {{ 'selected' if filters.get('categoryId', '')|string == c.categoryId|string }}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="project-status">Status</label>
+      <select id="project-status" name="status">
+        <option value="">All statuses</option>
+        <option value="CURRENT" {{ 'selected' if filters.get('status', '')|upper == 'CURRENT' }}>Current</option>
+        <option value="PAST" {{ 'selected' if filters.get('status', '')|upper == 'PAST' }}>Past</option>
+      </select>
+    </div>
+    <div>
+      <label>Budget (S$)</label>
+      <div class="budget-inputs">
+        <input name="minBudget" value="{{ filters.get('minBudget', '') }}" placeholder="Min" inputmode="decimal" aria-label="Minimum budget">
+        <span aria-hidden="true">–</span>
+        <input name="maxBudget" value="{{ filters.get('maxBudget', '') }}" placeholder="Max" inputmode="decimal" aria-label="Maximum budget">
+      </div>
+    </div>
+  </div>
+  <div class="filter-actions">
+    <p class="small muted">Projects must match all selected filters.</p>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('customer_projects') }}">Clear All</a>
+      <button class="btn" type="submit">Apply Filters</button>
+    </div>
+  </div>
+</form>
+
+{% if result.ok and result.data["items"] %}
+  <div class="grid cols-3">
+    {% for p in result.data["items"] %}{{ project_card(p, url_for('customer_project_detail', idp_id=p.idpId, **position)) }}{% endfor %}
+  </div>
+  {{ pager(result.data, 'customer_projects', active_filters) }}
+{% elif result.ok %}
+  <div class="card empty">{{ result.message }}</div>
+{% endif %}
+{% endblock %}

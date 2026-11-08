@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag %}
+{% block title %}{{ profile.roleName }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('admin_profiles') }}">← All Profiles</a></p>
+<div class="card" style="max-width:620px">
+  <h1>{{ profile.roleName }}</h1>
+  <dl class="facts">
+    <dt>Profile ID</dt><dd>{{ profile.profileId }}</dd>
+    <dt>Based on</dt><dd>{{ 'Built-in profile' if profile.isBuiltIn else profile.baseRoleLabel }}</dd>
+    <dt>Description</dt><dd>{{ profile.description or '-' }}</dd>
+    <dt>Status</dt><dd>{{ status_tag(profile.status) }}</dd>
+    <dt>Accounts</dt><dd><a href="{{ url_for('admin_accounts', profileId=profile.profileId) }}">{{ accountCount|plural('account') }}</a></dd>
+    <dt>Created</dt><dd>{{ profile.createdAt|datetime }}</dd>
+  </dl>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('admin_profile_edit', profile_id=profile.profileId) }}">Edit</a>
+    {% if profile.isActive and not profile.isBuiltIn %}<a class="btn secondary" href="{{ url_for('admin_profile_suspend', profile_id=profile.profileId) }}">Suspend</a>{% endif %}
+    {% if not profile.isActive %}<a class="btn secondary" href="{{ url_for('admin_profile_reactivate', profile_id=profile.profileId) }}">Reactivate</a>{% endif %}
+  </div>
+  {% if profile.isBuiltIn %}<p class="hint">Built-in profiles cannot be suspended. To block one person, suspend their account.</p>{% endif %}
+</div>
+{% endblock %}

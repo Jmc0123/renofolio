@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create Category' if creating else 'Update Category' }}{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>{{ 'Create Category' if creating else 'Update Category' }}</h1>
+  <form method="post" novalidate>
+    <label for="name">Name</label>
+    <input id="name" name="name" value="{{ name }}" maxlength="50" autofocus required>
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Create Category' if creating else 'Save' }}</button>
+      <a class="btn secondary" href="{{ url_for('pm_categories') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

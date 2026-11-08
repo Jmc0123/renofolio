@@ -1,0 +1,93 @@
+{% if fragment %}{% include "shared/_flashes.html" %}{% endif %}
+{% if error or not result.ok %}
+  <div class="banner error" role="alert">{{ error or result.message }}</div>
+{% endif %}
+
+{% if result.code == 'INBOX' %}
+  <div class="consultation-tools">
+    <strong>{{ 'Project Enquiries' if is_designer else 'Conversation History' }}</strong>
+    <a class="small" href="{{ url_for(endpoint) }}" data-consultation-link>Refresh</a>
+  </div>
+  {% if result.data.threads %}
+    <ul class="consultation-inbox">
+      {% for thread in result.data.threads %}
+        <li>
+          <a href="{{ url_for(endpoint, threadId=thread.consultation_id) }}" data-consultation-link>
+            <div>
+              <strong>{{ thread.project_title }}</strong>
+              <div class="small muted">{{ thread.customer_name if is_designer else thread.designer_name }}</div>
+              <div class="small muted">{{ thread.updated_at|datetime }}</div>
+            </div>
+            <span class="consultation-status {{ thread.status|lower }}">{{ thread.status|capitalize }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="consultation-empty muted">{{ 'Customer enquiries about your projects will appear here.' if is_designer
+       else 'Open a project and select Contact Designer to start a conversation.' }}</p>
+  {% endif %}
+{% elif result.code == 'DRAFT' %}
+  {% set project = result.data.project %}
+  <a class="small" href="{{ url_for(endpoint) }}" data-consultation-link>← Conversation History</a>
+  <div class="consultation-heading">
+    <span class="small muted">Project Consultation</span>
+    <h2>{{ project.title }}</h2>
+    <p class="muted">{{ project.companyName or project.designerName }} · {{ project.categoryName }}</p>
+  </div>
+  <form method="post" action="{{ url_for(endpoint) }}" data-consultation-form>
+    <input type="hidden" name="projectId" value="{{ project.idpId }}">
+    <label for="first-message-{{ 'drawer' if fragment else 'page' }}">Your Message</label>
+    <textarea id="first-message-{{ 'drawer' if fragment else 'page' }}" name="message" required maxlength="2000"
+              placeholder="Tell the designer about your space, budget or timeline.">{{ draft }}</textarea>
+    <div class="actions"><button class="btn" type="submit">Send Message</button></div>
+  </form>
+{% elif result.code == 'THREAD' %}
+  {% set thread = result.data.thread %}
+  <div class="consultation-tools">
+    <a class="small" href="{{ url_for(endpoint) }}" data-consultation-link>← {{ 'Inbox' if is_designer else 'Conversation History' }}</a>
+    <a class="small" href="{{ url_for(endpoint, threadId=thread.consultation_id) }}" data-consultation-link>Refresh</a>
+  </div>
+  <div class="consultation-heading">
+    <span class="consultation-status {{ thread.status|lower }}">{{ thread.status|capitalize }}</span>
+    <h2>{{ thread.project_title }}</h2>
+    <p class="muted">{{ thread.customer_name if is_designer else thread.designer_name }}</p>
+  </div>
+  <ol class="consultation-thread" aria-label="Conversation messages">
+    {% for message in result.data.messages %}
+      <li class="consultation-bubble{% if message.sender_id == user.accountId %} own{% endif %}">
+        <div class="consultation-byline">
+          <strong>{{ 'You' if message.sender_id == user.accountId else message.sender_name }}</strong>
+          <span>{{ message.created_at|datetime }}</span>
+        </div>
+        <p>{{ message.body }}</p>
+      </li>
+    {% endfor %}
+  </ol>
+  {% if thread.status == 'CLOSED' %}
+    <p class="consultation-empty muted">This conversation is closed. You can still read its history.</p>
+  {% elif thread.available %}
+    <form method="post" action="{{ url_for(endpoint) }}" data-consultation-form>
+      <input type="hidden" name="threadId" value="{{ thread.consultation_id }}">
+      <label for="reply-message-{{ 'drawer' if fragment else 'page' }}">Your Reply</label>
+      <textarea id="reply-message-{{ 'drawer' if fragment else 'page' }}" name="message" required maxlength="2000"
+                placeholder="Write a reply.">{{ draft }}</textarea>
+      <div class="actions"><button class="btn" type="submit">Send Reply</button></div>
+    </form>
+  {% else %}
+    <p class="consultation-empty muted">Messages are unavailable for this conversation. You can still read its history.</p>
+  {% endif %}
+  {% if is_designer and thread.status != 'CLOSED' %}
+    <details class="consultation-close">
+      <summary>Close Conversation</summary>
+      <p class="small muted">Closing keeps the conversation history and ends replies.</p>
+      <form method="post" action="{{ url_for(endpoint) }}" data-consultation-form>
+        <input type="hidden" name="threadId" value="{{ thread.consultation_id }}">
+        <input type="hidden" name="action" value="close">
+        <button class="btn secondary small" type="submit">Confirm Close</button>
+      </form>
+    </details>
+  {% endif %}
+{% else %}
+  <a href="{{ url_for(endpoint) }}" data-consultation-link>Back to Messages</a>
+{% endif %}

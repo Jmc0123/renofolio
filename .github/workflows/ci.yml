@@ -1,0 +1,48 @@
+# CI/CD pipeline
+#  - CI: on every push and pull request, install dependencies and run all unit + integration tests.
+#  - CD: when tests pass on main, trigger a deployment on Render (set the RENDER_DEPLOY_HOOK_URL
+#        repository secret to the "Deploy Hook" URL from the Render dashboard).
+name: CI/CD
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unit and integration tests
+        run: pytest -v --cov=app --cov-report=term-missing --junitxml=test-results.xml
+      - name: Generate 100+ record test data (smoke check)
+        run: python scripts/generate_test_data.py --db ci_demo.db
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deployment
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set; skipping deployment."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
+          echo "Deployment triggered for commit $GITHUB_SHA"

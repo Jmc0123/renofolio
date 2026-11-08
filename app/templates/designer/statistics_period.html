@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "shared/_macros.html" import status_tag, photo_style %}
+{% block title %}Statistics for a Period{% endblock %}
+{% block content %}
+<h1>Portfolio Statistics</h1>
+{% include "designer/_stats_nav.html" %}
+<h2>Statistics for a Period</h2>
+<form class="inline-form card" action="{{ url_for('designer_statistics_period') }}" style="margin-bottom:1rem">
+  <div><label for="period">Period</label>
+    <select id="period" name="period">
+      {% for value, label in [('DAY', 'Day'), ('WEEK', 'Week'), ('MONTH', 'Month')] %}
+        <option value="{{ value }}" {{ 'selected' if period == value }}>{{ label }}</option>{% endfor %}
+    </select></div>
+  <div><label for="date">Date</label><input id="date" name="date" type="date" value="{{ date }}"></div>
+  <button class="btn" name="show" value="views" type="submit">Views</button>
+  <button class="btn secondary" name="show" value="saves" type="submit">New Shortlists</button>
+</form>
+<p class="hint">A week runs Monday to Sunday and a month from the 1st to the last day, around the date you choose.</p>
+{% if result %}
+  <div class="section-head"><h3>{{ result.data.label }} · {{ 'Views' if shown == 'views' else 'New Shortlists' }}</h3>
+    <span class="muted small">Total {{ result.data.total }}</span></div>
+  {% if result.data.rows %}
+  <div class="idp-list">
+    {% for p in result.data.rows %}
+    <div class="idp-row card">
+      <span class="thumb" style="{{ photo_style(p) }}"></span>
+      <span class="idp-text"><strong>{{ p.title }}</strong>
+        <span class="meta">{{ p.categoryName }} · {{ status_tag(p.projectStatus) }} · {{ p.budget|money }}</span></span>
+      <span class="idp-counts"><span><b>{{ p.count }}</b> {{ ('view' if shown == 'views' else 'new save') ~ ('' if p.count == 1 else 's') }}</span></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<div class="card empty">{{ result.message }}</div>{% endif %}
+{% endif %}
+{% endblock %}
