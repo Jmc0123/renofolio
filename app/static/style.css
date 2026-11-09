@@ -288,9 +288,6 @@ footer.sitefooter { background: #2b2622; color: #cfc5b9; text-align: left; paddi
 .sitefooter .foot-brand p { max-width: 18rem; }
 .sitefooter .copyright { display: block; border-top: 1px solid #443c35; padding: 1rem 16px; font-size: .8rem; color: #a2978b; }
 
-@media (max-width: 560px) {
-  .sitefooter:has(+ .consultation-launch) .copyright { padding-inline-end: calc(9.75rem + env(safe-area-inset-right, 0px)); }
-}
 
 @media (max-width: 860px) {
   .hero-grid, .auth-split { grid-template-columns: 1fr; }
@@ -395,7 +392,24 @@ a.page-num:hover { border-color: var(--accent); text-decoration: none; }
 .consultation-close summary { cursor: pointer; }
 .consultation-drawer textarea { min-height: 80px; }
 .consultation-drawer form .actions { margin-top: .7rem; }
-.consultation-launch:focus-visible, .consultation-drawer a:focus-visible, .consultation-drawer button:focus-visible {
+/* 9 November: unread messages, and no floating button on phones */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.unread-badge { display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .35rem; margin-left: .3rem;
+  border-radius: 1rem; background: var(--accent); color: #fff; font-size: .72rem; font-weight: 700; line-height: 1; vertical-align: middle; }
+.unread-badge[hidden] { display: none; }
+.consultation-launch .unread-badge { background: #fff; color: #8d3a1c; }
+.consultation-inbox li.unread strong { color: #8d3a1c; }
+.consultation-unread { margin-top: .2rem; font-size: .8rem; font-weight: 600; color: #8d3a1c; }
+.topbar-messages { display: none; position: relative; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--line); color: var(--ink); background: var(--surface); margin-left: auto; }
+.topbar-messages:hover { background: var(--accent-soft); text-decoration: none; }
+.topbar-messages .unread-badge { position: absolute; top: -.35rem; right: -.45rem; margin: 0; }
+@media (max-width: 560px) {
+  .consultation-launch { display: none; }
+  .topbar-messages { display: inline-grid; }
+  .consultation-drawer { inset: auto 0 0 0; width: 100%; height: min(85dvh, 39rem); border-radius: 16px 16px 0 0; }
+}
+.consultation-launch:focus-visible, .topbar-messages:focus-visible, .consultation-drawer a:focus-visible, .consultation-drawer button:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px;
 }
 

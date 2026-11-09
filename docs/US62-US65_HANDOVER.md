@@ -9,7 +9,7 @@ The story numbers below follow the current US61 and can be aligned with the team
 3. Click **Contact Designer** to open the bottom-right drawer. Write a message and send it.
 4. In a separate browser session, log in as the demo Interior Designer and open **Messages**. Open the new enquiry and reply.
 5. Return to the Customer drawer and select **Refresh**. Open **Messages** on another Customer page to see the same conversation in history.
-6. In the Designer inbox, choose **Close Conversation** and confirm. Both participants can still open the history.
+6. In the Designer inbox, choose **Close Conversation** and confirm. Both participants can still open the history, and writing again reopens it.
 7. Close the Customer drawer and select **Back to My Matches** to return to the same answers and expanded results.
 8. Try a S$10,000 Dining Room budget. The results show the lowest visible published budget of S$11,000. **Edit Budget** returns to the budget field.
 
@@ -17,9 +17,9 @@ The story numbers below follow the current US61 and can be aligned with the team
 
 | Story | User story | Acceptance |
 |---|---|---|
-| US62 | As a Customer, I want to contact the designer from a project page, so that I can discuss my renovation. | Contact Designer opens the project's conversation. Sending the first valid message creates a New consultation assigned to the project owner. A repeat first submission opens the existing thread. A hidden project or an empty message cannot start one. |
-| US63 | As a Customer, I want to reopen my conversations and reply, so that I can keep track of the discussion. | The bottom-right Messages entry lists the signed-in Customer's history. An open, available thread accepts a reply and returns to New for the designer. Closed and unavailable threads remain readable. |
-| US64 | As an Interior Designer, I want to receive, reply to and close project consultations, so that I can manage enquiries about my work. | The inbox lists enquiries assigned to that Designer. Sending a reply sets the thread to Replied. Confirming Close sets it to Closed. Other Designers cannot open or change that thread. |
+| US62 | As a Customer, I want to contact the designer from a project page, so that I can discuss my renovation. | Contact Designer opens the project's conversation. Sending the first valid message creates a New consultation assigned to the project owner. If the customer already has a thread for the project, the message is added to it (an identical repeat is saved once). A hidden project or an empty message cannot start one. |
+| US63 | As a Customer, I want to reopen my conversations and reply, so that I can keep track of the discussion. | The bottom-right Messages entry lists the signed-in Customer's history. An available thread accepts a reply and returns to New for the designer (shown to the customer as Waiting for Reply; Replied is shown as Designer Replied). Writing in a closed thread reopens it. Unavailable threads remain readable. Unread messages show a number on the Messages button and each conversation. |
+| US64 | As an Interior Designer, I want to receive, reply to and close project consultations, so that I can manage enquiries about my work. | The inbox lists enquiries assigned to that Designer. Sending a reply sets the thread to Replied. Confirming Close sets it to Closed; either participant can reopen it by writing. The Messages menu link shows how many conversations have unread messages. Other Designers cannot open or change that thread. |
 | US65 | As a Customer, I want to answer a short renovation questionnaire, so that I can find projects suited to my requirements. | The questionnaire captures room, budget, style and preferred project status. Style choices include descriptions and a More Styles section. Results separate projects that meet every chosen preference from other projects within budget. Each card explains the match and the budget difference. Show More reveals additional projects. Back to My Matches restores the answers and result count. An empty result shows the lowest visible published room budget when available and links to the budget field. |
 
 Suggested tasks for each story are to confirm the use case, draw the BCE and sequence diagrams, write the failing checks, implement the matching Boundary, Controller and Entity operations, and verify the normal and alternative flows. US62–US64 can use the shared consultation model below.
@@ -88,3 +88,5 @@ sequenceDiagram
 The acceptance suite is `tests/test_consultations_and_matcher.py`. It covers both roles, conversation access and history, and the questionnaire's groups, budget feedback, additional styles and return links. The result files in `us62-us65-evidence/` record the original implementation checks and browser walkthrough.
 
 For the results update, five checks failed on the earlier code and passed after implementation. The full suite passed all 449 tests. Desktop and 390px Chrome walkthroughs verified Show More, the return from a project after sending a consultation, Edit Budget and an additional style against a copy of the demo database.
+
+9 November review: see `docs/MESSAGES_2026-11-09.md` for the Messages changes (reopening closed conversations, messages from an old form, customer status words, unread badges, the phone layout and the drawer Close fix).

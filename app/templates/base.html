@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+{# 9 November: the number of conversations with unread messages; the drawer script keeps it up to date. #}
+{% macro unread_badge(count) -%}
+  <span class="unread-badge" data-unread-badge{% if not count %} hidden{% endif %}><span data-unread-count>{{ count or 0 }}</span><span class="sr-only"> unread</span></span>
+{%- endmacro %}
+{% set message_icon %}
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+            stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M7 9h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+{% endset %}
 {% if not user %}
 <div class="utilitybar">
   <div class="inner">
@@ -30,7 +41,7 @@
           <a href="{{ url_for('designer_projects') }}">My Projects</a>
           <a href="{{ url_for('designer_company') }}">Company</a>
           <a href="{{ url_for('designer_statistics') }}">Statistics</a>
-          <a href="{{ url_for('designer_messages') }}">Messages</a>
+          <a href="{{ url_for('designer_messages') }}">Messages {{ unread_badge(unread_messages) }}</a>
         {% elif p == 'admin' %}
           <a href="{{ url_for('admin_accounts') }}">User Accounts</a>
           <a href="{{ url_for('admin_profiles') }}">User Profiles</a>
@@ -39,6 +50,12 @@
           <a href="{{ url_for('pm_reports') }}">Reports</a>
         {% endif %}
       </nav>
+      {% if p == 'customer' %}
+        {# 9 November: on phones the customer's Messages button sits here instead of floating over the page. #}
+        <a class="topbar-messages" href="{{ url_for('customer_messages') }}" data-consultation-launch aria-label="Messages">
+          {{ message_icon }}{{ unread_badge(unread_messages) }}
+        </a>
+      {% endif %}
       <details class="usermenu">
         <summary aria-label="Account menu">
           <span class="avatar">{{ user.name[:1]|upper }}</span>
@@ -98,12 +115,8 @@
 {% if user and user.area.prefix in ('customer', 'designer') %}
   {% set messages_url = url_for(user.area.prefix ~ '_messages') %}
   <a class="consultation-launch btn" href="{{ messages_url }}" data-consultation-launch>
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
-            stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      <path d="M7 9h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-    </svg>
-    Messages
+    {{ message_icon }}
+    Messages {{ unread_badge(unread_messages) }}
   </a>
   <dialog id="consultation-drawer" class="consultation-drawer" aria-labelledby="consultation-drawer-title">
     <div class="consultation-drawer-bar">

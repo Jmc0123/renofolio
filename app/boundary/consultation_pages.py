@@ -1,11 +1,17 @@
 """Inbox and project consultation views for a full page or the message drawer."""
-from flask import make_response, redirect, url_for
+from flask import g, make_response, redirect, url_for
 
-from app.boundary.ui import current_session_id, handle_expired, render, show_result
+from app.boundary.ui import current_session_id, handle_expired, render, show_result, unread_message_count
 from app.common.request_types import ConsultationRequest
 from app.common.result import Result
 from app.control.consultation_controller import ConsultationController
-from app.entity.database import INTERIOR_DESIGNER
+from app.entity.database import CUSTOMER, INTERIOR_DESIGNER
+
+# 9 November: each side sees the status in its own words; the customer is waiting for the designer, not "New".
+STATUS_LABELS = {
+    CUSTOMER: {"NEW": "Waiting for Reply", "REPLIED": "Designer Replied", "CLOSED": "Closed"},
+    INTERIOR_DESIGNER: {"NEW": "New", "REPLIED": "Replied", "CLOSED": "Closed"},
+}
 
 
 class ConsultationPanel:
@@ -41,8 +47,12 @@ class ConsultationPanel:
     # Renders the same content for the regular page and the progressively enhanced drawer.
     def _render(self, result, fragment, error="", draft=""):
         template = "consultations/_panel.html" if fragment else "consultations/messages.html"
+        unread = unread_message_count(getattr(g, "user", None))
         response = make_response(render(template, result=result, error=error, draft=draft, fragment=fragment,
-                                        endpoint=self.endpoint, is_designer=self.role == INTERIOR_DESIGNER))
+                                        endpoint=self.endpoint, is_designer=self.role == INTERIOR_DESIGNER,
+                                        status_labels=STATUS_LABELS[self.role], unread_messages=unread))
         if fragment:
             response.headers["X-Consultation-Fragment"] = "1"
+            # 9 November: the drawer script updates the Messages badges from this count without a reload.
+            response.headers["X-Consultation-Unread"] = str(unread)
         return response

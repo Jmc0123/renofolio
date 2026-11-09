@@ -99,7 +99,7 @@ def test_consultation_is_private_to_its_two_participants(site):
     assert db.scalar("SELECT COUNT(*) FROM consultation_messages") == 1
 
 
-# Closed threads remain in history and reject later messages.
+# Closed threads remain in history; since 9 November writing again reopens them (tests/test_messages_2026_11_09.py).
 def test_designer_can_close_a_thread(site):
     app, db, _, project, _, _ = site
     customer = sign_in(app, "customer", "amy@example.test")
@@ -110,8 +110,8 @@ def test_designer_can_close_a_thread(site):
     assert designer.post("/designer/messages", data={"threadId": thread, "action": "close"}).status_code == 303
     history = customer.get(url)
     assert b"Closed" in history.data and b"Can we discuss a kitchen renovation?" in history.data
-    assert b"This conversation is closed." in customer.post(
-        "/customer/messages", data={"threadId": thread, "message": "Try again"}).data
+    assert b"This conversation was closed by the designer. Sending a message will reopen it." in history.data
+    assert db.scalar("SELECT status FROM consultations WHERE consultation_id = ?", (thread,)) == "CLOSED"
     assert db.scalar("SELECT COUNT(*) FROM consultation_messages") == 1
 
 

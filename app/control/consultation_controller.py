@@ -2,6 +2,7 @@
 from app.common.request_types import IDPIdRequest
 from app.common.result import Result
 from app.common.validators import is_blank, to_positive_int
+from app.control.base import Controller
 from app.control.login_controllers import AccessGuardController
 from app.entity.consultations import Consultations
 from app.entity.database import CUSTOMER, INTERIOR_DESIGNER
@@ -69,3 +70,26 @@ class ConsultationController:
         if thread_id is None:
             return self.model.unavailableResult()
         return self.model.close(thread_id, access.data["accountId"])
+
+
+class CountUnreadMessagesController(Controller):
+    """US63/US64 (9 November): how many of the caller's conversations have messages they have not opened."""
+
+    # Sets up the controller with the consultations.
+    def __init__(self):
+        self.model = Consultations()
+
+    # Returns the number of conversations with unread messages for the Messages badge.
+    def execute(self, request):
+        if not self.validateRequest(request):
+            return self.invalidInputResult()
+        return self.model.countUnread(request.accountId, request.role)
+
+    # Checks the account ID is a whole number and the role is one that has messages.
+    def validateRequest(self, request):
+        if to_positive_int(request.accountId) is None:
+            return self.reject("Invalid account ID.")
+        if request.role not in (CUSTOMER, INTERIOR_DESIGNER):
+            return self.reject("Only customers and interior designers have messages.")
+        request.accountId = int(request.accountId)
+        return True

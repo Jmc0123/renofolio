@@ -11,14 +11,15 @@
   {% if result.data.threads %}
     <ul class="consultation-inbox">
       {% for thread in result.data.threads %}
-        <li>
+        <li{% if thread.unread %} class="unread"{% endif %}>
           <a href="{{ url_for(endpoint, threadId=thread.consultation_id) }}" data-consultation-link>
             <div>
               <strong>{{ thread.project_title }}</strong>
               <div class="small muted">{{ thread.customer_name if is_designer else thread.designer_name }}</div>
               <div class="small muted">{{ thread.updated_at|datetime }}</div>
+              {% if thread.unread %}<div class="consultation-unread">{{ thread.unread|plural('unread message') }}</div>{% endif %}
             </div>
-            <span class="consultation-status {{ thread.status|lower }}">{{ thread.status|capitalize }}</span>
+            <span class="consultation-status {{ thread.status|lower }}">{{ status_labels[thread.status] }}</span>
           </a>
         </li>
       {% endfor %}
@@ -49,7 +50,7 @@
     <a class="small" href="{{ url_for(endpoint, threadId=thread.consultation_id) }}" data-consultation-link>Refresh</a>
   </div>
   <div class="consultation-heading">
-    <span class="consultation-status {{ thread.status|lower }}">{{ thread.status|capitalize }}</span>
+    <span class="consultation-status {{ thread.status|lower }}">{{ status_labels[thread.status] }}</span>
     <h2>{{ thread.project_title }}</h2>
     <p class="muted">{{ thread.customer_name if is_designer else thread.designer_name }}</p>
   </div>
@@ -64,9 +65,12 @@
       </li>
     {% endfor %}
   </ol>
-  {% if thread.status == 'CLOSED' %}
-    <p class="consultation-empty muted">This conversation is closed. You can still read its history.</p>
-  {% elif thread.available %}
+  {% if thread.available %}
+    {% if thread.status == 'CLOSED' %}
+      {# 9 November: a closed conversation can be reopened by writing, so no one is locked out. #}
+      <p class="consultation-empty muted">{{ 'You closed this conversation. Sending a message will reopen it.' if is_designer
+         else 'This conversation was closed by the designer. Sending a message will reopen it.' }}</p>
+    {% endif %}
     <form method="post" action="{{ url_for(endpoint) }}" data-consultation-form>
       <input type="hidden" name="threadId" value="{{ thread.consultation_id }}">
       <label for="reply-message-{{ 'drawer' if fragment else 'page' }}">Your Reply</label>

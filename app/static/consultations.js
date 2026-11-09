@@ -8,6 +8,15 @@
   let busy = false;
   let currentUrl;
 
+  // 9 November: shows the number of conversations with unread messages on every Messages badge (hidden at 0).
+  function updateBadges(count) {
+    document.querySelectorAll("[data-unread-badge]").forEach((badge) => {
+      badge.hidden = count === 0;
+      badge.querySelector("[data-unread-count]").textContent = count;
+    });
+  }
+
+  // Loads the inbox, a conversation or a form result into the drawer, keeping any unsent draft.
   async function load(url, form) {
     if (busy) return;
     busy = true;
@@ -31,6 +40,8 @@
         throw new Error("Messages response unavailable");
       }
       content.innerHTML = await response.text();
+      const unread = response.headers.get("X-Consultation-Unread");
+      if (unread !== null) updateBadges(Number(unread));
       currentUrl = response.url;
       fullPage.href = currentUrl;
       const input = content.querySelector("textarea");
@@ -48,6 +59,7 @@
     }
   }
 
+  // Opens the drawer from any Messages button, or follows a link inside the drawer.
   document.addEventListener("click", (event) => {
     const launch = event.target.closest("[data-consultation-launch]");
     const link = event.target.closest("[data-consultation-link]");
@@ -62,11 +74,14 @@
     load(target.href);
   });
 
+  // Sends a drawer form in the background and shows the result in the drawer.
   drawer.addEventListener("submit", (event) => {
     if (!event.target.matches("[data-consultation-form]")) return;
     event.preventDefault();
-    load(event.target.action, event.target);
+    // getAttribute is used because the Close form has a field named "action", which hides form.action.
+    load(event.target.getAttribute("action"), event.target);
   });
 
+  // Closes the drawer with its × button.
   drawer.querySelector("[data-consultation-close]").addEventListener("click", () => drawer.close());
 })();

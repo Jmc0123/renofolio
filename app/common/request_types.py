@@ -106,6 +106,12 @@ class ConsultationRequest:
 
 
 @dataclass
+class UnreadMessagesRequest:
+    accountId: object = None
+    role: str = ""
+
+
+@dataclass
 class RenovationBriefRequest:
     sessionId: Optional[str] = None
     room: str = ""

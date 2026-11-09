@@ -7,7 +7,8 @@ from functools import wraps
 
 from flask import session, render_template, redirect, url_for, flash, g, make_response
 
-from app.common.request_types import SessionRequest
+from app.common.request_types import SessionRequest, UnreadMessagesRequest
+from app.control.consultation_controller import CountUnreadMessagesController
 from app.control.login_controllers import AccessGuardController
 from app.entity.database import CUSTOMER, INTERIOR_DESIGNER, USER_ADMIN, PLATFORM_MANAGER
 
@@ -17,6 +18,8 @@ ROLE_AREAS = {
     USER_ADMIN: {"prefix": "admin", "label": "User Admin", "login": "admin_login"},
     PLATFORM_MANAGER: {"prefix": "pm", "label": "Platform Manager", "login": "pm_login"},
 }
+# The two roles that have Messages (US62-US64), by page prefix.
+MESSAGE_ROLES = {"customer": CUSTOMER, "designer": INTERIOR_DESIGNER}
 
 
 # Returns the session ID stored in the signed browser cookie.
@@ -40,8 +43,19 @@ def end_login_session():
 
 # Shows a page template, always passing the logged-in user for the header.
 def render(template, **context):
-    context.setdefault("user", getattr(g, "user", None))
+    user = context.setdefault("user", getattr(g, "user", None))
+    # 9 November: the Messages button and menu link show how many conversations have unread messages.
+    context.setdefault("unread_messages", unread_message_count(user))
     return render_template(template, **context)
+
+
+# Counts the logged-in Customer's or Interior Designer's conversations with unread messages (0 for anyone else).
+def unread_message_count(user):
+    role = MESSAGE_ROLES.get(user["area"]["prefix"]) if user else None
+    if role is None:
+        return 0
+    result = CountUnreadMessagesController().execute(UnreadMessagesRequest(user["accountId"], role))
+    return result.data["count"] if result.ok else 0
 
 
 # Shows a Result's message as a green (success) or red (error) banner.

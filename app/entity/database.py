@@ -105,6 +105,8 @@ CREATE TABLE IF NOT EXISTS consultations (
     designer_id     INTEGER NOT NULL REFERENCES user_accounts(account_id),
     status          TEXT NOT NULL CHECK (status IN ('NEW', 'REPLIED', 'CLOSED')),
     updated_at      TEXT NOT NULL,
+    customer_last_read_id INTEGER NOT NULL DEFAULT 0,
+    designer_last_read_id INTEGER NOT NULL DEFAULT 0,
     UNIQUE (customer_id, project_id)
 );
 
@@ -212,6 +214,7 @@ def migrate(path):
     2. project_views / favourites get ON DELETE CASCADE on idp_id.
     3. user_profiles gets base_role (8 November): built-in profiles are based on themselves and older custom
        profiles on Platform Manager, the staff role with fewer permissions.
+    4. consultations gets customer_last_read_id / designer_last_read_id (9 November) for unread messages.
     """
     conn = sqlite3.connect(path, isolation_level=None)
     try:
@@ -243,6 +246,11 @@ def migrate(path):
                 conn.execute("ALTER TABLE user_profiles ADD COLUMN base_role TEXT NOT NULL DEFAULT 'PLATFORM_MANAGER'")
                 conn.execute("UPDATE user_profiles SET base_role = role_code WHERE role_code IN (?, ?, ?, ?)",
                              BUILT_IN_ROLES)
+        if "consultations" in tables:
+            columns = {r[1] for r in conn.execute("PRAGMA table_info(consultations)")}
+            for column in ("customer_last_read_id", "designer_last_read_id"):
+                if column not in columns:
+                    conn.execute(f"ALTER TABLE consultations ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")

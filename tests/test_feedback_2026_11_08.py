@@ -118,6 +118,8 @@ def title_case_problems(text):
 # Collects button, link-button, menu, heading and form-label texts from a page.
 def ui_labels(page_html):
     page_html = re.sub(r"<script.*?</script>", "", page_html, flags=re.S)
+    # Text only screen readers hear (e.g. "1 unread" on the Messages badge) is not a visible label.
+    page_html = re.sub(r'<span class="sr-only">.*?</span>', "", page_html, flags=re.S)
     patterns = [r"<button[^>]*>(.*?)</button>", r'<a[^>]*class="[^"]*\bbtn\b[^"]*"[^>]*>(.*?)</a>',
                 r'<nav[^>]*class="nav"[^>]*>(.*?)</nav>', r'<div class="menu">(.*?)</div>',
                 r"<h1[^>]*>(.*?)</h1>", r"<h2[^>]*>(.*?)</h2>", r"<label[^>]*>(.*?)</label>", r"<th[^>]*>(.*?)</th>",
