@@ -82,6 +82,158 @@ def apply_demo_project_previews(conn):
     ).rowcount
 
 
+# ---- sample conversations (US62-US64, 10 November): what customers and designers write to each other.
+# Each script is one conversation: the customer writes first, then the designer, taking turns (up to 6 messages).
+CONVERSATION_SCRIPTS = [
+    ["Hi, I love this {style} {room}. Could you do something similar for {home}?",
+     "Thank you for your enquiry. Yes, we can adapt this design for your home. When are you free for a site visit?",
+     "Thank you. I am free on {day} afternoon. Does that work for you?",
+     "{day} afternoon works. I will confirm the time by tomorrow.",
+     "Great. Should I prepare anything before the visit?",
+     "A floor plan and a few photos of the room would help. See you then."],
+    ["Hello, what would a {room} like this cost for {home}? My budget is about S${budget:,}.",
+     "Hi, thanks for asking. The cost depends on the size and materials, but your budget is workable for a similar scope.",
+     "That is good to hear. What is the next step?",
+     "The next step is a site measurement, then a 3D drawing for your approval.",
+     "Could you also include the lighting in the quote?",
+     "Yes, lighting is included. I will send the quote after the measurement."],
+    ["Hi, how long did this {room} project take from start to finish?",
+     "Hello, it took about {weeks} weeks, including carpentry. A similar {room} would take about the same.",
+     "Can we start after {month}? We are still waiting for our keys.",
+     "Yes, we can schedule the start for after {month}.",
+     "Thank you. I will contact you again once we have the keys.",
+     "No problem. Feel free to message me with any questions before then."],
+    ["Hello, are you taking new projects in {area}? I am planning a {style} {room}.",
+     "Thanks for your message. Yes, we are taking new projects in {area} from next month. Shall we arrange a call this week?",
+     "Yes, please. I am free on {day} evening.",
+     "{day} evening is fine. I will call you at 7 pm.",
+     "Thank you. I will share my floor plan before the call.",
+     "Received, thank you. I will prepare some ideas for our call."],
+    ["Hi, I saw this project and would like a quote for my {room}. Can we arrange a site visit?",
+     "Hello, we would be happy to visit. Which day suits you?",
+     "{day} morning would be best for me.",
+     "{day} morning is confirmed. I will bring some material samples.",
+     "Great. Is the site visit free?",
+     "Yes, the first visit and the quote are free."],
+    ["Hello, which materials did you use for this {room}? I would like the same look.",
+     "Hello, we used {material} for this project. I can send you a few more options.",
+     "Yes, please send them. Are they easy to clean?",
+     "They are. A damp cloth is enough for daily cleaning.",
+     "Thanks. I will discuss it with my family and get back to you.",
+     "No problem, take your time."],
+    ["Hi, can this design work in a smaller space? My home is {home}.",
+     "Hi, yes, this works well in smaller homes too. We would adjust the storage and lighting.",
+     "Could you share an example of a smaller project?",
+     "Sure. Please look at the other projects on our company page; two of them are compact homes.",
+     "I like them. Can we arrange a site visit?",
+     "Of course. I will message you some dates tomorrow."],
+    ["Hello, I am renovating {home} next year. Is the {style} style easy to maintain?",
+     "Hello, yes. With the right finishes the {style} style is easy to keep clean. When do you plan to start?",
+     "We plan to start around {month}.",
+     "That gives us enough time. I can prepare a proposal within three working days.",
+     "That would be great, thank you.",
+     "You are welcome. I will send it to you here."],
+]
+MATERIALS = ["oak veneer and quartz", "laminate and sintered stone", "walnut and brushed brass", "microcement and matte tiles",
+             "rattan and light timber", "fluted panels and marble-look tiles"]
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+MONTHS = ["January", "February", "March", "April", "May", "June"]
+
+
+# Writes the first `count` messages of one sample conversation about the project, using one script throughout.
+def conversation_lines(rng, project_title, count):
+    style_room, _, where = project_title.partition(" - ")
+    room = next(r for r in ROOMS if style_room.endswith(r))
+    details = dict(style=style_room[:-len(room)].strip(), room=room.lower(), home=describe_place(rng.choice(PLACES)),
+                   area=where.rpartition(", ")[2], budget=rng.randrange(15000, 90000, 5000),
+                   weeks=rng.randint(4, 16), material=rng.choice(MATERIALS), day=rng.choice(DAYS),
+                   month=rng.choice(MONTHS))
+    return [line.format(**details) for line in rng.choice(CONVERSATION_SCRIPTS)[:count]]
+
+
+# Plans one conversation: its messages with times, its status and whether each side still has unread messages.
+# `unread` forces the unread state for the demo accounts; None lets the random generator decide.
+def plan_conversation(rng, customer, project, count, closed, start, now, unread=None):
+    earliest = max(project["created"], start)
+    moment = earliest + timedelta(seconds=rng.randint(0, max(1, int((now - earliest).total_seconds()))))
+    messages = []
+    for position, line in enumerate(conversation_lines(rng, project["title"], count)):
+        if position:
+            moment = min(now, moment + timedelta(minutes=rng.randint(10, 36 * 60)))
+        messages.append((moment, customer if position % 2 == 0 else project["designer"], line))
+    customer_wrote_last = count % 2 == 1
+    status = "CLOSED" if closed else "NEW" if customer_wrote_last else "REPLIED"
+    updated = min(now, moment + timedelta(minutes=rng.randint(60, 48 * 60))) if closed else moment
+    # The person who did not write the last message may not have opened it yet (the designer who closed it has).
+    chance = rng.random()
+    waiting = (chance < 0.6 if customer_wrote_last else chance < 0.5) if unread is None else unread
+    return {"customer": customer, "project": project, "messages": messages, "status": status, "updated": updated,
+            "customer_unread": waiting and not customer_wrote_last,
+            "designer_unread": waiting and customer_wrote_last and not closed}
+
+
+# Adds the sample conversations and messages: a fixed set for the two demo logins, then random ones.
+# Only active customers and projects of active designers are used, so every conversation can be opened.
+def add_conversations(conn, rng, total, demo_customer, demo_designer, start, now):
+    projects = [{"id": r[0], "title": r[1], "designer": r[2], "created": datetime.strptime(r[3], TIME_FORMAT)}
+                for r in conn.execute(
+                    "SELECT p.idp_id, p.title, p.designer_id, p.created_at FROM interior_design_projects p "
+                    "JOIN user_accounts a ON a.account_id = p.designer_id WHERE a.status = 'ACTIVE' ORDER BY p.idp_id")]
+    customers = [r[0] for r in conn.execute(
+        "SELECT a.account_id FROM user_accounts a JOIN user_profiles p ON p.profile_id = a.profile_id "
+        "WHERE p.role_code = 'CUSTOMER' AND a.status = 'ACTIVE' AND a.account_id <> ? ORDER BY a.account_id",
+        (demo_customer,))]
+    demo_projects = [p for p in projects if p["designer"] == demo_designer]
+    other_projects = [p for p in projects if p["designer"] != demo_designer]
+
+    # The demo designer's inbox: New (unread and read), Replied and Closed enquiries from seven customers.
+    # The designer's first project is left free so "Contact Designer" can be shown live in a demo.
+    plans = [plan_conversation(rng, customers[i], demo_projects[index], count, closed, start, now, unread)
+             for i, (index, count, closed, unread) in enumerate([
+                 (1, 1, False, True), (2, 3, False, True), (3, 2, False, False), (4, 4, False, False),
+                 (5, 4, True, False), (6, 1, False, False), (2, 5, False, True)])]
+    # The demo customer's history: an unread reply from the demo designer, one waiting for a reply, one closed.
+    plans.append(plan_conversation(rng, demo_customer, demo_projects[-1], 2, False, start, now, True))
+    plans.append(plan_conversation(rng, demo_customer, other_projects[0], 1, False, start, now, False))
+    plans.append(plan_conversation(rng, demo_customer, other_projects[1], 4, True, start, now, False))
+
+    # Everyone else: random customer and project pairs (one conversation per pair), 1 to 6 messages each.
+    used = {(plan["customer"], plan["project"]["id"]) for plan in plans}
+    while len(plans) < total:
+        customer, project = rng.choice(customers), rng.choice(other_projects)
+        if (customer, project["id"]) in used:
+            continue
+        used.add((customer, project["id"]))
+        count = rng.choice([1, 1, 2, 2, 3, 3, 4, 5, 6])
+        plans.append(plan_conversation(rng, customer, project, count, count >= 2 and rng.random() < 0.2, start, now))
+
+    # Conversations and messages are saved oldest first, so their IDs follow the order they happened in.
+    plans.sort(key=lambda plan: plan["messages"][0][0])
+    for plan in plans:
+        plan["id"] = conn.execute(
+            "INSERT INTO consultations (project_id, project_title, customer_id, designer_id, status, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (plan["project"]["id"], plan["project"]["title"], plan["customer"], plan["project"]["designer"],
+             plan["status"], ts(plan["updated"]))).lastrowid
+        plan["message_ids"] = [None] * len(plan["messages"])
+    queue = sorted((moment, number, position) for number, plan in enumerate(plans)
+                   for position, (moment, _, _) in enumerate(plan["messages"]))
+    for moment, number, position in queue:
+        plan = plans[number]
+        _, sender, body = plan["messages"][position]
+        plan["message_ids"][position] = conn.execute(
+            "INSERT INTO consultation_messages (consultation_id, sender_id, body, created_at) VALUES (?, ?, ?, ?)",
+            (plan["id"], sender, body, ts(moment))).lastrowid
+    # Each side has read everything, or everything except the newest message when it is still unread.
+    for plan in plans:
+        ids = [0] + plan["message_ids"]
+        conn.execute(
+            "UPDATE consultations SET customer_last_read_id = ?, designer_last_read_id = ? WHERE consultation_id = ?",
+            (ids[-2] if plan["customer_unread"] else ids[-1], ids[-2] if plan["designer_unread"] else ids[-1],
+             plan["id"]))
+    return len(plans)
+
+
 # Formats a datetime the way the database stores it.
 def ts(moment):
     return moment.strftime(TIME_FORMAT)
@@ -100,7 +252,8 @@ def describe_place(place):
     return f"{article} {text}"
 
 
-# Builds the whole sample database: profiles, accounts, categories, companies, projects, views and saves.
+# Builds the whole sample database: profiles, accounts, categories, companies, projects, views, saves
+# and conversations.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", default=os.environ.get("IDP_DB_PATH", "idp_platform.db"))
@@ -109,6 +262,7 @@ def main():
     parser.add_argument("--designers", type=int, default=110)
     parser.add_argument("--projects", type=int, default=320)
     parser.add_argument("--days", type=int, default=120, help="spread activity over the last N days")
+    parser.add_argument("--conversations", type=int, default=150, help="project conversations (US62-US64)")
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
@@ -249,9 +403,13 @@ def main():
                              (customer, idp, ts(saved), removed))
                 favourites += 1
 
+        # ---- conversations (150) and their messages (about 400): generated last, so every value above
+        # stays exactly the same as before conversations were added (10 November).
+        add_conversations(conn, rng, args.conversations, demo_customer, demo_designer, start, now)
+
     counts = {t: db.scalar(f"SELECT COUNT(*) FROM {t}") for t in
               ("user_profiles", "user_accounts", "companies", "project_categories",
-               "interior_design_projects", "project_views", "favourites")}
+               "interior_design_projects", "project_views", "favourites", "consultations", "consultation_messages")}
     print(f"Test data written to {os.path.abspath(args.db)}")
     for table, count in counts.items():
         print(f"  {table:<26}{count:>6}")

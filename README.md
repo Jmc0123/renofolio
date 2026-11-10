@@ -49,7 +49,7 @@ Demo passwords are all `Password123`:
 | User Admin | admin@demo.com | /admin/login |
 | Platform Manager | manager@demo.com | /pm/login |
 
-The generator creates 100 profiles, 282 accounts, 110 companies, 120 categories, 320 projects and linked views and saves. Some accounts are deliberately suspended. Staff accounts `admin06`–`admin10` and `manager06`–`manager10` use custom team profiles (for example "Support Team 01", based on User Admin), so those profiles have real users.
+The generator creates 100 profiles, 282 accounts, 110 companies, 120 categories, 320 projects, linked views and saves, and 150 conversations with 450 messages. Some accounts are deliberately suspended. Staff accounts `admin06`–`admin10` and `manager06`–`manager10` use custom team profiles (for example "Support Team 01", based on User Admin), so those profiles have real users.
 
 The demo includes eight project-specific AI-generated illustrations. Six cover the first Find My Style results for Dining Room, S$60,000, Japandi and Completed Projects. Two cover the Coastal and Mid-Century Modern home offices on the first Browse Projects page. The other fictional projects use one of six local room-type illustrations. The shipped database and the default data generator use the same preview assignments. Generation prompts are in `app/static/sample-projects/generation-prompts.json`.
 
