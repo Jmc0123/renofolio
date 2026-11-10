@@ -1,131 +1,145 @@
-# Renofolio: interior design project matching platform
+# Renofolio
 
-**8 November 2026 update.** The platform is now called Renofolio. This release fixes the 8 November review: Title Case wording, the eight bugs (including the new US60/US61 Reactivate stories and "Based on" staff profiles), the confusing-behaviour list and the sample-data text. Every function now has a short comment above it explaining what it does. Details, test evidence and the design-document updates are in [8 November changes](docs/FEEDBACK_2026-11-08.md).
+Renofolio is an interior design project platform built for the CSIT314 group assignment. Customers browse projects, save favourites and contact designers. Designers manage their portfolios and consultations. User Admins manage accounts and profiles, and Platform Managers manage project categories and review platform activity.
 
-本版平台改名为 Renofolio，修正了 11 月 8 日审查里的所有问题，并在每个函数上方加了简短注释。详情、测试记录和需要更新的设计文档内容见 [8 November changes](docs/FEEDBACK_2026-11-08.md)。
+The application uses Python, Flask, Jinja and SQLite. Project previews, fonts and browser assets are served locally.
 
-Earlier work:
+## Getting Started
 
-- US42–US59: [US42–US59 handover](docs/US42-US59_HANDOVER.md).
-- Designer v3 work and feedback: [US23–US41 handover](docs/US23-US41_HANDOVER.md) and [v3 feedback](docs/FEEDBACK_2026-11-06.md).
-- Customer work: [US01–US22 handover](docs/US01-US22_HANDOVER.md) and [preview and filter update](docs/PREVIEW_FILTERS_UPDATE.md).
+Use **Python 3.11 or newer**. For a fresh GitHub checkout, run these commands from the folder where you want to keep the project.
 
-## Run locally on Windows
-
-Use Python 3.11 or newer. The deployment uses Python 3.12.
-
-Open **Command Prompt (cmd)** in the extracted folder that contains `run.py` (if the zip made a folder inside a folder, go into the inner one). Type these three lines one at a time:
-
-```bat
-py -m pip install -r requirements.txt
-set IDP_DB_PATH=%cd%\sample_demo.db
-py run.py
+```sh
+git clone https://github.com/Jmc0123/renofolio.git
+cd renofolio
 ```
 
-Open <http://127.0.0.1:5000> and keep the window open. Press Ctrl+C to stop the server. Next time, only the last two lines are needed.
+If you have the final project ZIP, extract it and enter the folder containing `run.py` and `requirements.txt`. The final ZIP includes `sample_demo.db`. From a fresh GitHub checkout, use the setup commands below to generate it.
 
-The first start creates a file called `.renofolio_secret_key` next to the database. It keeps you logged in when the app restarts. Do not share it or upload it; it is already excluded from Git.
+### Windows Command Prompt
 
-**Upgrading an existing database (6 November):** on start-up the app upgrades an older database in place: `company_information` becomes `companies` (phone/email become contact number/contact email) and project views/favourites are set to be deleted with their project. Every row is kept. Copy your database file first if you want a backup.
+Run each line separately in the project folder.
 
-**升级现有数据库：** 启动时会自动升级旧数据库，所有数据保留。如需备份，请先复制数据库文件。
-
-新版 ZIP 已包含带预览图的 `sample_demo.db`，可以直接启动。
-
-To add photos to an existing database without resetting it:
-
-```bat
-py scripts\add_sample_photos.py --db sample_demo.db
+```cmd
+py -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+if not exist "sample_demo.db" .venv\Scripts\python.exe scripts\generate_test_data.py --db sample_demo.db
+set "IDP_DB_PATH=%CD%\sample_demo.db"
+.venv\Scripts\python.exe run.py
 ```
 
-The photo updater makes a database backup, fills only empty photo URLs and can be run again safely. To deliberately rebuild disposable demo data, run `py scripts\generate_test_data.py --db sample_demo.db`; this generator replaces the selected database.
+### macOS and Linux
 
-Demo passwords are all `Password123`:
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+test -f sample_demo.db || .venv/bin/python scripts/generate_test_data.py --db sample_demo.db
+IDP_DB_PATH="$PWD/sample_demo.db" .venv/bin/python run.py
+```
 
-| Role | Email | Login page |
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in a browser. Keep the terminal open while using the site. Press **Ctrl+C** to stop the server.
+
+## Demo Accounts
+
+All four seeded demo accounts use the password `Password123`.
+
+| Role | Email | Login path | Page after login |
+|---|---|---|---|
+| Customer | `customer@demo.com` | `/customer/login` | Customer Home |
+| Interior Designer | `designer@demo.com` | `/designer/login` | Interior Designer Home |
+| User Admin | `admin@demo.com` | `/admin/login` | User Accounts |
+| Platform Manager | `manager@demo.com` | `/pm/login` | Project Categories |
+
+## Features and User Stories
+
+| Stories | Area | Implemented workflows |
 |---|---|---|
-| Customer | customer@demo.com | /customer/login |
-| Interior Designer | designer@demo.com | /designer/login |
-| User Admin | admin@demo.com | /admin/login |
-| Platform Manager | manager@demo.com | /pm/login |
+| US01–US12 | Accounts and authentication | Customer and designer registration, role-specific login and logout, and viewing or updating customer details. |
+| US13–US22 | Customer projects and favourites | Browse up to 12 projects per page, combine keyword, category, status and budget filters, view details, save projects, and search or remove favourites. Project details link back to the previous filters and page. |
+| US23–US31 | Designer company and projects | Manage company details and create, edit, search, filter and delete owned projects. Company details are required before creating a project. An optional JPG, PNG or WebP preview may be up to 5 MB. |
+| US32–US41 | Portfolios and interest tracking | Customers view designer portfolios and company information. Designers sort project interest summaries, track views and new saves by period, and view portfolio totals and current shortlists. |
+| US42–US51 | User administration | Create staff accounts, search accounts and profiles, edit account details and profile descriptions, and suspend eligible accounts or profiles. Custom staff profiles are based on User Admin or Platform Manager. |
+| US52–US59 | Platform management | Manage project categories and generate daily, weekly or monthly reports for new accounts, new projects, project views and new saves. Weekly reports use the week containing the selected date. |
+| US60–US61 | Reactivation | Restore suspended accounts and profiles. Both the account and its assigned profile must be active for login. |
+| US62–US64 | Project consultations | Customers contact designers from project details. Both participants can view their conversation history and reply. Designers can close conversations. A new reply reopens an available closed conversation. |
+| US65 | Find My Style | Match a room and budget, then rank projects by selected style and status preferences. Results explain the match, show alternatives within budget and retain the questionnaire answers when the customer returns from a project. |
 
-The generator creates 100 profiles, 282 accounts, 110 companies, 120 categories, 320 projects, linked views and saves, and 150 conversations with 450 messages. Some accounts are deliberately suspended. Staff accounts `admin06`–`admin10` and `manager06`–`manager10` use custom team profiles (for example "Support Team 01", based on User Admin), so those profiles have real users.
+The customer budget filter takes both a minimum and a maximum when used. Budgets run from **S$0 to S$10,000,000**, with values rounded to cents. Current shortlist counts reflect favourites still saved, while new-save reports count successful save actions during the chosen period.
 
-The demo includes eight project-specific AI-generated illustrations. Six cover the first Find My Style results for Dining Room, S$60,000, Japandi and Completed Projects. Two cover the Coastal and Mid-Century Modern home offices on the first Browse Projects page. The other fictional projects use one of six local room-type illustrations. The shipped database and the default data generator use the same preview assignments. Generation prompts are in `app/static/sample-projects/generation-prompts.json`.
+## Demo Walkthrough
 
-## Tests
+1. Sign in as the **Customer** and open **Find My Style**. Select **Dining Room**, enter **S$60,000**, then choose **Japandi** and **Completed Projects**. Compare **Best Matches** and **Other Options Within Budget**. Use **Show More** to display additional results.
+2. Open **Japandi Dining Room - Condominium, Clementi**. Its listed budget is **S$57,000**, which is **S$3,000 below the selected budget**. Select **Contact Designer** and send an enquiry.
+3. In a separate browser session, sign in as the **Interior Designer**. Open **Messages**, select the enquiry and reply. The unread number on the Messages entry counts conversations with unread messages. The inbox shows the unread message count for each conversation.
+4. Return to the Customer session and refresh the conversation to see the reply. The designer can close it and either participant can send a new reply to reopen it while the project remains available. Choose **Back to My Matches** to return to the same search.
+5. Sign in as **User Admin** to show account and profile management. Then sign in as **Platform Manager** to show the category list and generate a report from **Reports**.
 
-```bat
-py -m pip install pytest pytest-cov
-py -m pytest -q
-py -m pytest --cov=app --cov-report=term-missing
+The demo Customer and Designer already share a conversation for **Coastal Bathroom - Cluster House, Jurong East**. A fresh demo database leaves the featured Japandi project available for a live first enquiry.
+
+## Sample Data and Storage
+
+The default [sample data generator](scripts/generate_test_data.py) creates fictional records for the demo.
+
+| Data | Records |
+|---|---:|
+| User profiles | 100 |
+| User accounts | 282 |
+| Companies | 110 |
+| Project categories | 120 |
+| Interior design projects | 320 |
+| Project views | 1,093 |
+| Favourites and save history | 576 |
+| Consultation conversations | 150 |
+| Consultation messages | 450 |
+
+The demo includes read and unread conversations in New, Replied and Closed states. Eight selected projects have [AI-generated previews](app/static/sample-projects/generation-prompts.json). Other sample projects use room-type illustrations. The bundled [Fraunces](app/static/fonts/OFL-Fraunces.txt) and [Inter](app/static/fonts/OFL-Inter.txt) fonts include their SIL Open Font License files.
+
+**Keep a separate file for any data you want to retain.** The generator replaces the database at the path passed to `--db`. The setup commands above generate `sample_demo.db` only when it is missing. To get the latest seeded conversations while retaining an older demo database, generate a new file such as `sample_messages_demo.db` and set `IDP_DB_PATH` to that file.
+
+The application creates or upgrades its SQLite schema on startup. The [photo updater](scripts/add_sample_photos.py) can fill missing previews in an existing database and backs it up before changing it. SQLite databases, local uploads and the generated session key are kept outside Git.
+
+| Setting | Default and purpose |
+|---|---|
+| `IDP_DB_PATH` | Selects the SQLite database. The default is `idp_platform.db` in the project root. |
+| `HOST` and `PORT` | The local server binds to `127.0.0.1:5000` by default. |
+| `SECRET_KEY` | Sets the Flask session signing key. By default the application creates `.renofolio_secret_key` next to the database. |
+
+## Architecture
+
+Renofolio uses a **Boundary–Control–Entity** structure. A request enters a Flask route and Boundary, the Controller checks access and applies the workflow rules, and Entity classes handle SQLite queries and persistence.
+
+| Folder | Responsibility |
+|---|---|
+| [`app/boundary/`](app/boundary/) | Routes, page boundaries, form input and responses. |
+| [`app/control/`](app/control/) | Request validation, permissions and business workflows. |
+| [`app/entity/`](app/entity/) | SQLite schema, migrations and data access. |
+| [`app/common/`](app/common/) | Request types, result objects and shared validation. |
+| [`app/templates/`](app/templates/) and [`app/static/`](app/static/) | Jinja views, styles, scripts and local assets. |
+| [`scripts/`](scripts/), [`tests/`](tests/) and [`docs/`](docs/) | Demo setup, automated tests and implementation handovers. |
+
+## Testing and CI
+
+Run the test suite from the project root. The tests use temporary databases.
+
+```cmd
+.venv\Scripts\python.exe -m pytest -q
 ```
 
-Tests create separate temporary databases. On 9 November the full suite passed 426 tests, and 18 browser checks passed. The records are in [8 November changes](docs/FEEDBACK_2026-11-08.md).
+For a coverage report, run `.venv\Scripts\python.exe -m pytest --cov=app --cov-report=term-missing`. On macOS and Linux, use `.venv/bin/python` in place of the Windows interpreter path.
 
-测试使用独立的临时数据库。交接说明包含逐项验收表、修改内容和实际结果。
+The **10 November 2026 release passed 484 automated tests**. The [CI workflow](.github/workflows/ci.yml) runs the suite and checks sample-data generation on pushes and pull requests. It uploads the test report as a workflow artifact.
 
-## Customer features
+The [Render configuration](render.yaml) builds the demo database and starts the app with Gunicorn. After tests pass on a push to `main`, the workflow triggers a Render deployment when `RENDER_DEPLOY_HOOK_URL` is configured as a repository secret.
 
-| Stories | Features |
-|---|---|
-| US01-US12 | Customer/designer registration, four role logins/logouts, own details and updates |
-| US13-US17 | Browse, keyword search and category, status and budget filters (S$0 to S$10,000,000). Each page shows up to 12 projects, with page numbers and Go to Page. Back from a project restores the page and filters. |
-| US18 | Project details, one view record per successful opening |
-| US19-US21 | Save once (stays on the project page and shows the message), view own favourites (saved projects hidden by a suspended designer are counted, not lost), search own favourites |
-| US22 | Confirm/cancel removal; keep save/removal timestamps; allow later re-saving |
-| US32-US33 | Designer name on a project opens the designer's portfolio (Current and Past groups); Company Information button opens the company page with Back to Portfolio |
+### Known Demo Limitations
 
-## Interior Designer features
+- Use the default data generator settings for the counts above. The fixed demo conversations can exceed a small requested conversation count, and a very small project count can cause seeding to fail.
+- Two participants opening the same conversation at the same time can occasionally hit a SQLite database lock. A stale first-message form that repeats the last message of a closed conversation can show a success message while leaving that conversation closed.
 
-| Stories | Features |
-|---|---|
-| US23-US25 | Create, view and edit company information. Company name, contact email and contact number are required; one record per designer |
-| US26 | Create a project with an uploaded photo (JPG/PNG/WebP, up to 5 MB) and a budget of S$0 to S$10,000,000; company information must be added first |
-| US27-US28, US31 | My Interior Design Projects as cards; one filter box like Browse IDPs (Keyword, Status, Apply filters, Clear all): each alone or both together; project details with Edit and Delete |
-| US29 | Edit a project, including Current to Past; the photo is kept unless a new one is chosen |
-| US30 | Delete after a warning: the project, its views and its favourites are deleted together in one transaction |
-| US34-US35 | Project Statistics: choose a project, then View Count or Shortlist Count |
-| US36-US38 | Project Interest Summary with Sort by Views / Sort by Shortlists (ties listed by title) |
-| US39-US40 | Statistics for a Period: day, week (Monday to Sunday) or month around a chosen date; views or new saves per project |
-| US41 | Portfolio Totals: total views and current shortlists, equal to the summary's sums |
+## Handover Notes
 
-Designer controllers use the shared access guard, so they check the session, account/profile status and the Interior Designer role themselves, and every query is limited to the designer's own records.
+- **US01–US22** [Accounts and customer workflows](docs/US01-US22_HANDOVER.md) and [story traceability](docs/US01-US22_TRACEABILITY.csv).
+- **US23–US41** [Designer workflows](docs/US23-US41_HANDOVER.md) and [story traceability](docs/US23-US41_TRACEABILITY.csv).
+- **US42–US61** [User Admin and Platform Manager workflows](docs/US42-US59_HANDOVER.md) and [profile and reactivation changes](docs/FEEDBACK_2026-11-08.md).
+- **US62–US65** [Consultations and Find My Style](docs/US62-US65_HANDOVER.md), [message fixes](docs/MESSAGES_2026-11-09.md) and [sample conversations](docs/SAMPLE_MESSAGES_2026-11-10.md).
 
-Search is case insensitive for the English catalogue and treats `%` and `_` as literal keyword characters. Budget bounds are inclusive and must be finite, non-negative numbers. All provided criteria combine with AND; blank criteria are unrestricted. A budget filter requires both bounds. Applying changed criteria resets the page to one; pagination retains the filters. Clear all returns to the full list.
-
-Customer identity comes from the persisted session. The route guard checks role/status before rendering protected pages. Personal-details, project-detail and favourites Controllers repeat that check before returning private data or making changes. Project visibility consistently requires an active designer account and profile. Removing a favourite preserves its history.
-
-## User Admin and Platform Manager features
-
-| Stories | Features |
-|---|---|
-| US42–US46 | Create active staff accounts with an email, password, contact number and any active staff profile. View, update and suspend accounts. Search by name/email and profile, 20 rows per page. |
-| US47–US51 | Create profiles "Based on" User Admin or Platform Manager, search by name or description, view the account count, edit the description and suspend custom profiles (the four built-in profiles and your own profile are protected). |
-| US60–US61 | Reactivate a suspended account or profile after confirming (new stories, 8 November). |
-| US52–US56 | List categories with customer-visible project counts, 20 per page. Create, edit, search and confirm removal of unused categories. |
-| US57–US59 | Generate daily, weekly and monthly reports with new accounts, new projects, project views and new saves. |
-
-## Code and design
-
-```text
-app/boundary/       Pages, forms, route mapping and response rendering
-app/control/        Request validation, permissions and business flow
-app/entity/         SQLite persistence and records
-app/common/         Request objects, Result, validation and clock
-app/templates/      Role pages and forms
-tests/              Acceptance and regression tests for US01–US61
-docs/               Story traceability, design alignment notes and test evidence
-```
-
-Boundary classes call Controllers rather than querying the database. Names were retained from the supplied code where they consolidate shared behaviour; the handover lists the diagram-to-code differences for the design team. The original Word documents are not modified.
-
-## TDD and deployment evidence
-
-The US42–US59 checks were run on the received v3 code before the application changes. See `docs/us42-us59-evidence/red.xml` and `green.xml` for the recorded before and after results. The earlier handovers retain the evidence for their own changes.
-
-本次保留真实的先失败、后修正、再通过记录。不能把已经写好的旧代码拆成两个提交来声称原本采用了 TDD。
-
-The 8 November changes followed the same order: 55 new checks were committed first (53 failed, 2 passed), then the fixes (all 55 pass). See `docs/feedback-2026-11-08-evidence/`.
-
-This release was verified on local Flask and SQLite. GitHub Actions and Render configuration are included for the team's deployment work. Fonts are served from `app/static/fonts` (SIL Open Font License), so the app looks the same without internet.
+The final ZIP includes the archived test evidence for the group submission. Check [GitHub Actions](https://github.com/Jmc0123/renofolio/actions) for the results of a particular repository run.
