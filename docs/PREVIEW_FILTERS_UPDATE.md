@@ -6,7 +6,7 @@ Updated 3 November 2026
 
 The customer project list now combines keyword, category, Current/Past status and budget. The fictional sample projects have six local AI-generated preview photos matched by room type. This update retains existing accounts and project/activity records.
 
-客户现在可以同时使用多个条件筛选，翻页保留条件。演示项目按房间类型配图，图片保存在项目本地。给现有数据库补图时不重新生成整份数据。
+
 
 ## How filtering works
 
