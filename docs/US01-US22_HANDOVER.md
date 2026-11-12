@@ -6,7 +6,7 @@ Date: 2 November 2026
 
 The supplied US01-US12 account and login functions have been checked, and the existing US13-US22 browsing/favourites implementation has been completed and corrected against the supplied designs. The final application passes 226 automated tests and 16 Chrome workflow checks.
 
-队友的 US01-US12 已验证；US13-US22 已按你后补的设计文档核对并修正。本次是在队友 ZIP 的基础上继续，原 ZIP 里已存在的功能不应全部计为本次新增代码。
+
 
 ## Scope and references
 
@@ -32,7 +32,7 @@ The deliverable includes the inherited US23-US59 code so that the application st
 
 The timing check measured individual Flask test-client requests against 320 projects and 291 accounts. It includes server-side hashing/database/rendering where applicable. It is a local, sequential check, not a public-network or concurrent-load guarantee. Browser workflow durations include navigation, typing, screenshots and multiple requests; they are not individual response-time measurements.
 
-测试不是全部独立的 unit tests：其中包括 Controller + SQLite 测试、Flask HTTP 测试，以及另外执行的真实浏览器流程。覆盖率衡量执行过的代码行，不能直接当作“所有需求完成率”。
+
 
 ## Changes that matter
 
@@ -96,7 +96,7 @@ The functions are verified; the supplied diagrams are not literal descriptions o
 
 The active-designer visibility rule, 100-character search limit and literal wildcard handling are explicit implementation decisions that support consistent availability and keyword behaviour; the supplied use cases do not specify every one of these edge cases. Keep these decisions in the agreed acceptance criteria. Filters are independent, as shown by the individual use cases; combined multi-filter search was not added.
 
-给 Design 组的任务是同步这些具体差异。不能只凭类名相近就声称图与代码完全一致，也不必照搬图中所有重复的辅助方法。
+
 
 ## Genuine evidence and contribution
 
