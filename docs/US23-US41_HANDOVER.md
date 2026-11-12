@@ -4,7 +4,7 @@ Date: 6 November 2026. Later the same day, three issues found in testing were fi
 
 US23-US41 (Interior Designer company information, portfolio management and interest statistics, plus the Customer's view of a designer) were checked against the updated `SoftwareAss.docx` and corrected to match it. Work started from `idp-platform-us22-preview-filters-2026-11-03.zip`. The final application passes 315 automated tests and 13 browser workflow checks.
 
-按更新后的 `SoftwareAss.docx` 核对并修正了 US23-US41。本次以 11 月 3 日的 ZIP 为基础继续，原 ZIP 中已有的 US23-US41 代码是本次修改的起点，不应全部计为本次新增。
+
 
 ## Scope and references
 
@@ -31,7 +31,7 @@ The suite count changed from 263 to 315: the 30 cases in the old `tests/test_us2
 
 The timing figures are Flask test-client requests on one machine. They are not a network or load test.
 
-测试包括 Controller + SQLite 测试、Flask 页面测试和真实浏览器流程。覆盖率是执行过的代码行比例，不等于需求完成率。
+
 
 ## Changes that matter
 
@@ -46,7 +46,7 @@ The timing figures are Flask test-client requests on one machine. They are not a
 9. **Periods follow the accuracy rule.** A chosen date gives the day (midnight to midnight), the week (Monday to Sunday) or the month (1st to last day). Projects with no activity show 0. US40 counts every successful save in the period, even if removed later.
 10. **Existing databases are upgraded in place.** On start-up, `company_information` rows are copied into `companies` (phone and email become contact number and contact email), and `project_views`/`favourites` are rebuilt with the cascade. Every row is kept and running it again changes nothing; a test covers this. The shipped `sample_demo.db` was regenerated.
 
-主要修改：US30 真正删除并在同一事务中删除浏览和收藏记录；US37/US38 同数按标题排序；公司表改为 `companies` 并要求联系邮箱和电话；类名、方法名、页面和提示语按设计文档统一；支持上传项目图片；旧数据库启动时自动升级，数据不丢失。
+
 
 ## Story acceptance
 
@@ -91,7 +91,7 @@ The code now uses the diagrams' names. These remaining differences should be ref
 | `ProjectStatRequest` result | Data holds only the count (`viewCount` or `shortlistCount`), as in the diagram | None |
 | Old addresses | `/designer/interest`, `/designer/projects/filter` and `/designer/projects/search` redirect to the new pages | None |
 
-请设计组按上表同步图与代码的差异，不要只因类名相同就声称完全一致。
+
 
 ## Effects outside US23-US41
 
